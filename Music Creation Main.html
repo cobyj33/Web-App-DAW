@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> JJ STUDIO </title>
+    <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
+    <link rel="stylesheet" type="text/css" href="channelRack.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+</head>
+<body>
+
+    <div id="toolBar">
+        <ul id="menuBar">
+            <li style=" text-align: center; color: white; font-family: 'Staatliches', cursive; overflow: hidden;"> <h1> JJ STUDIO </h1> </li>
+            <li>  <button class="menuButton"> Save</button></li>
+            <li>  <button class="menuButton"> Load</button></li>
+            <li>  <button class="menuButton"> View </button></li>
+            <li>  <button class="menuButton"> Edit</button></li>
+            <li><button class="menuButton">  About </button></li>
+        </ul> 
+
+        <div id="playListActionBar">
+            <input type="text" id="bpmDisplay">
+            <input type="text" id="timeSig">
+            <input type="text" id="timeDisplay">
+        </div>
+
+        <div id="windowSelection">
+            <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
+            <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Roll </button>
+        </div>
+    </div>
+    
+    <div id="playlist" class="window">
+        
+        <table id="playlistTable"> 
+            
+        </table>
+        
+    </div>
+
+    <div id="channelRack" class="dragPane"> 
+
+        <div class="closeBar dragSelector">
+          <h1 style="font-size: 10px; color: white; user-select: none; "> Channel Rack </h1>
+          <button type="button" id="channelRack-loopButton" class="statusIndicator off"> L </button>
+          <button type="button" id="channelRack_playButton" class="statusIndicator off"> ▶ </button>
+          <button type="button" id="channelRack_stopButton" class="statusIndicator off"> ■ </button>
+          <button type="button" id="channelRack_resetButton" class="statusIndicator off"> ↺ </button>
+          <button type="button" id="channelRack-saveButton" class="statusIndicator off"> Save </button>
+
+          <button type="button" class="closeButton"> X </button>
+        </div>
+        
+        <div class="main">
+          
+        </div>
+
+        <div class="bottomBar">
+          <button class="addSoundButton"> Add Sound Button </button>
+        </div>
+        
+    </div>
+
+    <div id="pianoRoll" class="window"> 
+
+
+    </div>
+
+
+
+
+    <script src="Music%20Creation%20JavaScript.js"> </script>
+    <script src="playlist.js"></script>
+    <script src="dragPane.js"> </script>
+    <script src="channelRack.js"></script>
+</body>
+</html>

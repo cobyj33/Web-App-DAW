@@ -1,0 +1,132 @@
+html, body {
+    height: 100%;
+    width: 100%; 
+    margin: 0; 
+}
+
+* {
+    font-family: 'Staatliches', cursive;
+}
+
+#toolBar {
+    position: sticky;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 20%;
+    background-color: #888888;
+    display: block;
+}
+
+#toolBar>* {
+    margin: 0px;
+}
+
+#menuBar {
+    width: 100%;
+    height: 30%;
+    background-color: #222222;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: left;
+    list-style: none;
+    align-items: center;
+}
+
+.menuButton {
+    height: 50%;
+    overflow: hidden;
+    margin-left: 20px;
+    background-color: #222222;
+    border: none;
+    color: white;
+    text-align: center;
+}
+
+.menuButton:hover {
+    animation: menuButtonAnimation;
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+}
+
+.menuButton:active {
+    animation: menuButtonPressed;
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+}
+
+@keyframes menuButtonPressed {
+    50% { transform: translateY(10px); }
+}
+
+@keyframes menuButtonAnimation {
+    50% { background-color: #444444; }
+}
+
+#playlist {
+    width: 100%;
+    height: 80%;;
+    background-color: #666666;
+}
+
+#playlistTable {
+    height: 100%;
+    width: 100%;
+}
+
+.playlistRow {
+    height: 10%;
+    width: 100%;
+    background-color: #AAAAAA;
+    border: 1px solid black;
+}
+
+.playlistCol {
+    border: 1px solid black;
+}
+
+.playlistCol:hover {
+    background-color: black;
+}
+
+.window {
+    background-color: #AAAAAA;
+}
+
+#windowSelection {
+    height: 50%;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.windowSelectionButton {
+    border-radius: 5px;
+    height: 50%;
+    width: 100px;
+}
+
+#playListActionBar {
+    height: 20%;
+    width: 100%;
+    background-color: #222222;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    vertical-align: top;
+}
+
+#playListActionBar input {
+    min-width: 10%;
+    max-width: 20%;
+    height: 50%;
+    background: linear-gradient(to left, black, #444444);
+    border-radius: 10px;
+    border: 1px solid black;
+    color: #999999;
+    margin: auto;
+}

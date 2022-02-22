@@ -1,0 +1,113 @@
+.dragSelector {
+    cursor: pointer;
+  }
+  
+  #channelRack {
+    height: 40%;
+    width: 80%;
+    border: 2px solid black;
+    background-color: darkgray;
+    position: fixed;
+    top: 40%;
+    left: 10%;
+    z-index: 100;
+  }
+  
+  #channelRack .closeBar, #channelRack .bottomBar {
+    height: 10%;
+    width: 100%;
+    background-color: black;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  
+  #channelRack .main {
+    height: 80%;
+    /* width: 100%; */
+    overflow: auto;
+    background-color: #222222;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+  }
+  
+  #channelRack .main table {
+    /* height: 80%; */
+    /* width: 100%; */
+    display: block;
+    background-color: #666666;
+    table-layout: fixed;
+  }
+  
+  #channelRack .main table tr {
+    height: 33%;
+  }
+  
+  #channelRack .main table tr td {
+    border-right: 1px solid white;
+    border-bottom: 2px solid white;
+  }
+
+  #channelRack .main table tr td:nth-of-type(2n + 1) {
+    background-color: #666666;
+  }
+
+  #channelRack .main table tr td:nth-of-type(2n) {
+    background-color: #444444;
+  }
+
+  td .endOfRack {
+    background-color:#222222;
+    border: 10px solid black;
+  }
+  
+  /* #channelRack .main table tr td:hover {
+    background-color: white;
+  } */
+  
+  #channelRack .bottomBar {
+    height: 10%;
+    width: 100%;
+    background-color: black;
+  }
+  
+  .closeButton {
+    color: red;
+    font-weight: bold;
+    height: 100%;
+    overflow: hidden;
+    background-color: darkred;
+  }
+
+  .instrumentName {
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    border: 2px double black;
+    background: linear-gradient(to right, black, #222222);
+  }
+
+  .statusIndicator {
+    background-color: transparent;
+    color: white;
+    font-weight: bold;
+    font-size: 1em;
+    font-family:'Gill Sans', 'Gill Sans MT', "Calibri", 'Trebuchet MS', sans-serif;
+    border: none;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .statusIndicator:hover {
+    transition: color 1s background-color 1s;
+    color: black;
+    background-color: white;
+  }
+
+  .statusIndicator.on {
+    background-color: white;
+    color: green;
+  }
