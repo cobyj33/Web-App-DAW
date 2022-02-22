@@ -1,16 +1,3 @@
-var bpm = 128;
-var timeSignature = "4x4";
-var currentTime = 0;
-
-function getBeatSpeed() {
-    let beatsPerMillisecond = bpm / 60 / 1000;
-    return 1 / beatsPerMillisecond;
-}
-
-function getTickSpeed() {
-    return getBeatSpeed() / 4;
-}
-
 
 window.addEventListener("load", e => {
     
