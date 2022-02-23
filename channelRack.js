@@ -4,22 +4,34 @@ let columnSize = 10; //pixels
 function program() {
     console.log("Hello");
     $("#channelRack").hide();
-    $("#channelRack .closeBar .closeButton").click(function() {
+    $("#channelRack .topBar .closeButton").click(function() {
       $("#channelRack").hide();
     });
   
-    channelRackInfo = {
+    channelRack = {
       visibleBeats: 6, //In measures
       notes: [],
       sounds: [createSound("Kick", "kick.mp3"),
         createSound("clap", "clap.mp3"),
         createSound("snare", "snare.mp3"),
-        createSound("HiHat", "hihat.mp3"),
-        createSound("Rest", "")],
-      currentTick: -1,
+        createSound("HiHat", "hihat.mp3")],
+      currentTick: 0,
       looping: false,
       playing: false,
       metronome: false,
+
+      get trackLength() {
+        let max = 0;
+        for (let i = 0; i < this.notes.length; i++) {
+          if (this.notes[i].tick > max) {
+            max = this.notes[i].tick;
+          }
+        }
+        if (max % 4 != 0) {
+          max += 4 - max % 4;
+        }
+        return max;
+      },
 
       addSound: function(soundName, src) {
         this.sounds.push(createSound(soundName, src))
@@ -59,11 +71,36 @@ function program() {
         return false;
       },
 
+      playIfFinished: function() {
+        if (!this.playing) {
+          this.currentTick = 0;
+          this.playTrack();
+        }
+      },
+
+      pause: function() {
+        this.playing = false;
+      },
+
+      restart: function() {
+        this.playing = false;
+        setTimeout(function() {
+          channelRack.currentTick = 0;
+          channelRack.playTrack();
+        }, getTickSpeed() + 1);
+      },
+
       playTrack: function() {
+        if (this.playing || this.notes.length == 0) {
+          return;
+        }
+        this.playing = true;
+        console.log(this.playing);
         let queue = [...this.notes].sort((a, b) => a.tick - b.tick)
-        console.log(queue); 
+        queue = queue.filter((note) => { return note.tick >= this.currentTick} );
+        let maxTime = this.trackLength;
         let tickTime = getTickSpeed();
-        playbackLoop(0)
+        playbackLoop();
 
         function showPlayLine(cell) {
           if (cell.get(0).style.backgroundColor == "") {
@@ -77,26 +114,34 @@ function program() {
           }
         }
 
-        function playbackLoop(tick) { 
-          $(`#channelRack table tr td:nth-of-type(${tick + 2})`).each(function() { showPlayLine( $(this) )});
-          $(`#channelRack table tr td:nth-of-type(${tick + 1})`).each(function() { removePlayLine( $(this) )});
+        function playbackLoop() { 
+          let {currentTick} = channelRack;
+          $(`#channelRack table tr td:nth-of-type(${currentTick + 1})`).each(function() { showPlayLine( $(this) )});
+          $(`#channelRack table tr td:nth-of-type(${currentTick})`).each(function() { removePlayLine( $(this) )});
+
+          if (!channelRack.playing) {
+            $(`#channelRack table tr td`).each(function() { removePlayLine( $(this) )});
+            return;
+          }
           
-          console.log(`tick: ${tick} tickTime: ${tickTime}`);
-          if (tick > channelRackInfo.visibleBeats * 4 || queue.length == 0) {
-            if (tick % 4 != 0) {
-              tick++;
-              window.setTimeout( () => playbackLoop(tick), tickTime);
+          console.log(`tick: ${currentTick} tickTime: ${tickTime}`);
+          if (queue.length == 0) {
+            if (currentTick <= maxTime) {
+              channelRack.currentTick++;
+              window.setTimeout( () => playbackLoop(), tickTime);
               return;
             } else {
+              channelRack.playing = false;
               $(`#channelRack table tr td`).each(function() { removePlayLine( $(this) )});
-              if(channelRackInfo.looping) {
-                window.setTimeout(() => channelRackInfo.playTrack(), 0);
+              if(channelRack.looping) {
+                channelRack.currentTick = 0;
+                window.setTimeout(() => channelRack.playTrack(), 0);
               }
               return;
             }
           }
 
-          while (queue[0].tick - 1 == tick) {
+          while (queue[0].tick == currentTick) {
             console.log("playing sound");
             queue[0].play();
             queue.shift();
@@ -106,55 +151,16 @@ function program() {
             }
           }
 
-          tick++;
-          window.setTimeout( () => playbackLoop(tick), tickTime);
+          channelRack.currentTick++;
+          window.setTimeout( () => playbackLoop(channelRack.currentTick), tickTime);
         }
       },
 
       exportRackInfo: function() {
-
-        track = {
-          notes: [...channelRackInfo.notes],
-          startingBeat: 0,
-          get trackLength() {
-            let max = 0;
-            for (let i = 0; i < notes.length; i++) {
-              if (notes[i].tick > max)
-                max = notes[i].tick;
-            }
-            return max;
-          },
-
-          play: function() {
-            let tickTime = getTickSpeed();
-            let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
-            let trackLength = this.trackLength;
-            playbackLoop(0);
-
-            function playbackLoop(currentTick) {
-              if (currentTick > trackLength || queue.length == 0)
-                return;
-              
-              while (queue[0].tick == currentTick) {
-                console.log("playing sound");
-                queue[0].play();
-                queue.shift();
-                if (queue.length == 0) {
-                  break;
-                }
-              }
-              
-              currentTick++;
-              window.setTimeout( () => playbackLoop(currentTick), tickTime);
-            }
-          }
-        }
-
-        return track;
+        return createTrack(notes);
       },
 
       extend: function(extendAmount) {
-        this.visibleBeats += 1;
         const column = document.createElement("td");
         column.classList.add("endOfRack");
         $("#channelRack .main table tr").each( function() {
@@ -173,7 +179,7 @@ function program() {
     }
 
     function createNoteFromLocation(row, col) {
-      return createNote(channelRackInfo.sounds[row], col);
+      return createNote(channelRack.sounds[row], col);
     }
     
     function appendSound() {
@@ -187,23 +193,23 @@ function program() {
       const tablerow = document.createElement("tr");
       const tablecol = document.createElement("td");
       mainArea.innerHTML = "";
-      columnSize = $("#channelRack").width() / (channelRackInfo.visibleBeats * 4);
+      columnSize = $("#channelRack").width() / (channelRack.visibleBeats * 4);
   
-      for (let row = 0; row < channelRackInfo.sounds.length; row++) {
+      for (let row = 0; row < channelRack.sounds.length; row++) {
         let currentRow = tablerow.cloneNode(true);
         table.append(currentRow);
-        for (let col = 0; col < channelRackInfo.visibleBeats * 4 + 1; col++) {
+        for (let col = 0; col < channelRack.visibleBeats * 4 + 1; col++) {
           let currentCol = tablecol.cloneNode(true);
           $(currentCol).css("min-width", columnSize + "px");
           
           if (col == 0) {
             const instrumentName = document.createElement("h2");
-            instrumentName.innerText = channelRackInfo.sounds[row].name;
+            instrumentName.innerText = channelRack.sounds[row].name;
             instrumentName.classList.add("instrumentName");
             currentCol.append(instrumentName);
           }
 
-          if (col >= (channelRackInfo.visibleBeats - 1) * 4) {
+          if (col >= (channelRack.visibleBeats - 1) * 4) {
             // $(currentCol).addClass("endOfRack");
             currentCol.classList.add("endOfRack");
           }
@@ -213,18 +219,39 @@ function program() {
         }
       }
       mainArea.append(table);
-      $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
-      $("#channelRack .main table tr td").each(function() {
-        let row = $(this).parent().index();
-        let col = $(this).index();
-        if (channelRackInfo.isAreaSelected(createNoteFromLocation(row, col))) {
-          $(this).css('background-color', '#FFFFFF');
-        }
-      });
+      applyDefaultCSS();
+      function applyDefaultCSS() {
+        $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
+
+        $("#channelRack .main table tr td").each(function() {
+          let row = $(this).parent().index();
+          let col = $(this).index();
+          if (channelRack.isAreaSelected(createNoteFromLocation(row, col))) {
+            $(this).css('background-color', '#FFFFFF');
+          }
+        });
+
+        $("#channelRack .main table tr td:nth-of-type(1)").css({
+          "position": "sticky",
+          "left": "0"
+        });
+
+        $("*").attr("draggable", "false");
+
+        $("#channelRack").css({
+          "top": "40%",
+          "left": "10%"
+        });
+      }
+      
 
     }
 
+    let mouseIsDown = false;
+    window.addEventListener('mouseup', () => mouseIsDown = false);
+    window.addEventListener('dragend', () => mouseIsDown = false);
     function channelRackEvents() {
+      
         $("#channelRack .main table tr td:nth-of-type(0)").off();
         $("#channelRack .main table tr td:nth-of-type(0)").mousedown(function() {
           const tableName = $(this);
@@ -243,11 +270,10 @@ function program() {
             }
           });
       });
-      
-      $("#channelRack .main table tr td").off();
-      $("#channelRack .main table tr td").mousedown(function() {
-        let row = $(this).parent().index();
-        let col = $(this).index();
+
+      function channelRackInput(cell) {
+        let row = $(cell).parent().index();
+        let col = $(cell).index();
         console.log(` clicked ${row} ${col}`);
         if (col <= 0) {
           return;
@@ -255,26 +281,55 @@ function program() {
 
         let selectedNote = createNoteFromLocation(row, col);
 
-        channelRackInfo.toggleArea(selectedNote);
+        channelRack.toggleArea(selectedNote);
 
-        if (channelRackInfo.isAreaSelected(selectedNote)) {
-          $(this).css('background-color', '#FFFFFF');
+        if (channelRack.isAreaSelected(selectedNote)) {
+          $(cell).css('background-color', '#FFFFFF');
         } else {
-          $(this).css('background-color', '');
+          $(cell).css('background-color', '');
         }
 
-        if (col > (channelRackInfo.visibleBeats - 1) * 4) {
-          channelRackInfo.extend();
+        if (col > (channelRack.visibleBeats - 1) * 4) {
+          channelRack.extend();
         }
-        
+      } 
+      
+      $("#channelRack .main table tr td").off();
+      $("#channelRack .main table tr td").mousedown(function() {
+        mouseIsDown = true;
+        channelRackInput(this);
       });
+
+      $("#channelRack .main table tr td").mouseenter(function() {
+        if (mouseIsDown) {
+          channelRackInput(this);
+        }
+      });
+
+      $("#channelRack .main").mouseleave(function() {
+        mouseIsDown = false;
+      });
+
+
 
       $("#channelRack .bottomBar .addSoundButton").click(function() {
 
       });
     }
+
+    function channelRackPlayAction() {
+      if (channelRack.playing) {
+        channelRack.pause();
+      } else if (channelRack.currentTick < channelRack.trackLength) {
+        channelRack.playTrack();
+      } else if (channelRack.currentTick >= channelRack.trackLength) {
+        channelRack.currentTick = 0;
+        channelRack.playTrack();
+      }
+    }
   
     //Standard Key Binding
+    window.onkeydown = keyPressed;
     function keyPressed(event) {
       let keyCode = event.code;
       if (keyCode == "KeyC") {
@@ -282,13 +337,9 @@ function program() {
         channelRackEvents();
         initializeButtonEvents();
       } else if (keyCode == "Space") {
-        channelRackInfo.playTrack();
+        channelRackPlayAction();
       }
       console.log("Key Pressed " + keyCode);
-    }
-  
-    window.onkeydown = function(event) {
-      keyPressed(event);
     }
 
     function initializeButtonEvents() {
@@ -296,8 +347,8 @@ function program() {
       $("#channelRack-loopButton").click(function() {
         $(this).blur();
         console.log("loop button clicked");
-        channelRackInfo.looping = !channelRackInfo.looping;
-        if (channelRackInfo.looping) {
+        channelRack.looping = !channelRack.looping;
+        if (channelRack.looping) {
           $(this).addClass("on");
         } else {
           $(this).removeClass("on");
@@ -305,19 +356,20 @@ function program() {
       });
 
       $('#channelRack_playButton').click(function() {
-
+        channelRackPlayAction();
       });
 
       $('#channelRack_stopButton').click(function() {
-
+        channelRack.playing = false;
+        window.setTimeout(() => channelRack.currentTick = 0, getTickSpeed());
       });
 
       $('#channelRack_resetButton').click(function() {
-
+        channelRack.restart();
       });
 
       $('#channelRack-saveButton').click(function() {
-        console.log(channelRackInfo.exportRackInfo());
+        console.log(channelRack.exportRackInfo());
       });
 
       $("#channelRack .bottomBar .addSoundButton").click(() => appendSound());
@@ -329,7 +381,6 @@ function program() {
 
     $("#channel-rack-selection-button").click(function() {
         $(this).blur();
-        console.log("i hate javascript");
         constructChannelRack();
         channelRackEvents();
         initializeButtonEvents();

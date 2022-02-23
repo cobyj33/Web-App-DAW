@@ -11,11 +11,15 @@
     top: 40%;
     left: 10%;
     z-index: 100;
+    resize: both;
+    overflow: hidden;
   }
   
-  #channelRack .closeBar, #channelRack .bottomBar {
+  #channelRack .topBar, #channelRack .bottomBar {
     height: 10%;
     width: 100%;
+    min-height: 5vh;
+    max-height: 10%;
     background-color: black;
     display: flex;
     justify-content: space-between;
@@ -26,6 +30,7 @@
   
   #channelRack .main {
     height: 80%;
+    min-height: 0;
     /* width: 100%; */
     overflow: auto;
     background-color: #222222;
@@ -67,11 +72,6 @@
     background-color: white;
   } */
   
-  #channelRack .bottomBar {
-    height: 10%;
-    width: 100%;
-    background-color: black;
-  }
   
   .closeButton {
     color: red;

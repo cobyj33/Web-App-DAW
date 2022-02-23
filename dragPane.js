@@ -4,6 +4,8 @@ function run() {
     let isDraggingPane = false;
     let mouseX = 0;
     let mouseY = 0;
+    let mouseXOffset = 0;
+    let mouseYOffset = 0;
     
     $(".dragPane .dragSelector").mousemove(function(e) {
         console.log("moving mouse in selector");
@@ -16,26 +18,30 @@ function run() {
 
     function dragPane(pane, selector) {
         if (isMouseDown) {
-          pane.style.left = String(mouseX - $(selector).width() / 2) + "px";
-          pane.style.top = String(mouseY - $(selector).height() / 2) + "px";
+          pane.style.left = String(mouseX - mouseXOffset) + "px";
+          pane.style.top = String(mouseY - mouseYOffset) + "px";
           window.setTimeout(function() { dragPane(pane, selector) }, 10);
           return;
         }
     }
-  
-    window.onmousedown = function() {
+
+    $(".dragPane .dragSelector").mousedown(function(e) {
       isMouseDown = true;
-    };
-  
-    window.onmouseup = function() {
+      let offset = $(this).parent().offset();
+      console.log($(this)[0].style.left);
+      mouseXOffset = e.clientX - offset.left;
+      mouseYOffset = e.clientY - offset.top;
+    });
+
+    window.addEventListener('mouseup', function() {
       isMouseDown = false;
       isDraggingPane = false;
-    };
+    });
 
-    window.onmousemove = function(e) {
+    window.addEventListener('mousemove', function(e) {
       mouseX = e.clientX;
       mouseY = e.clientY;
-    };
+    });
   
     console.log("Program begun");
   }

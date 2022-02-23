@@ -24,9 +24,20 @@
         </ul> 
 
         <div id="playListActionBar">
-            <input type="text" id="bpmDisplay">
-            <input type="text" id="timeSig">
-            <input type="text" id="timeDisplay">
+            <div>
+                <h3> BPM: </h3>
+                <input type="number" id="bpm-display" min="10" max="300">
+            </div>
+
+            <div>
+                <h3> Time Signature: </h3>
+                <input type="text" id="time-signature-display" placeholder="4/4" disabled>
+            </div>
+
+            <div>
+                <h3> Current Time: </h3>
+                <input type="number" id="current-time-display" min="0">
+            </div>
         </div>
 
         <div id="windowSelection">
@@ -45,7 +56,7 @@
 
     <div id="channelRack" class="dragPane"> 
 
-        <div class="closeBar dragSelector">
+        <div class="topBar dragSelector">
           <h1 style="font-size: 10px; color: white; user-select: none; "> Channel Rack </h1>
           <button type="button" id="channelRack-loopButton" class="statusIndicator off"> L </button>
           <button type="button" id="channelRack_playButton" class="statusIndicator off"> ▶ </button>
