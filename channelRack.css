@@ -37,7 +37,7 @@
     border-top: 1px solid white;
     border-bottom: 1px solid white;
   }
-  
+
   #channelRack .main table {
     /* height: 80%; */
     /* width: 100%; */
@@ -71,15 +71,6 @@
   /* #channelRack .main table tr td:hover {
     background-color: white;
   } */
-  
-  
-  .closeButton {
-    color: red;
-    font-weight: bold;
-    height: 100%;
-    overflow: hidden;
-    background-color: darkred;
-  }
 
   .instrumentName {
     font-size: 12px;
@@ -87,27 +78,4 @@
     color: white;
     border: 2px double black;
     background: linear-gradient(to right, black, #222222);
-  }
-
-  .statusIndicator {
-    background-color: transparent;
-    color: white;
-    font-weight: bold;
-    font-size: 1em;
-    font-family:'Gill Sans', 'Gill Sans MT', "Calibri", 'Trebuchet MS', sans-serif;
-    border: none;
-    max-width: 100%;
-    max-height: 100%;
-    overflow: hidden;
-  }
-
-  .statusIndicator:hover {
-    transition: color 1s background-color 1s;
-    color: black;
-    background-color: white;
-  }
-
-  .statusIndicator.on {
-    background-color: white;
-    color: green;
   }

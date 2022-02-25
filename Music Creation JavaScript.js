@@ -1,9 +1,15 @@
 var bpm = 128;
 var timeSignature = "4x4";
-var currentTime = 0;
+var currentTime = 0; //in Milliseconds
 
 function changeCurrentTimeToText() {
-  
+  //format 00:00:00 minutes:seconds:milliseconds
+  let newTime = currentTime
+  let minutes = newTime / 1000 / 60;
+  let seconds = newTime - (minutes * 1000 * 60) / 1000;
+  let milliseconds = newTime - (minutes * 1000 * 60) - (seconds * 1000);
+
+  return `${minutes}:${seconds}:${milliseconds}`;
 }
 
 function getBeatSpeed() {
@@ -96,13 +102,17 @@ $(document).ready(function() {
 
   $("#bpm-display").on('input', function() {
     if (Number($(this).val()) > 10) {
+      $(this).css("background", "linear-gradient(to left, black, green)");
       bpm = Number($(this).val());
+    } else {
+      $(this).css("background", "linear-gradient(to left, black, red)");
     }
   });
 
   $("#bpm-display").focusout(function() {
     console.log(bpm);
     $(this).val(bpm);
+    $(this).css("background", "linear-gradient(to left, black, green)");
   });
 
   $("#current-time-display").on('input', function() {

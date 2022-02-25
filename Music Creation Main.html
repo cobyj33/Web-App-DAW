@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
     <link rel="stylesheet" type="text/css" href="channelRack.css">
+    <link rel="stylesheet" type="text/css" href="savedTracks.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 </head>
@@ -23,7 +24,7 @@
             <li><button class="menuButton">  About </button></li>
         </ul> 
 
-        <div id="playListActionBar">
+        <div id="playListInfoBar">
             <div>
                 <h3> BPM: </h3>
                 <input type="number" id="bpm-display" min="10" max="300">
@@ -40,9 +41,18 @@
             </div>
         </div>
 
+        <ul id="playListActionBar">
+            <li> <button type="button" id="playList-play-button" class="status-indicator off"> L </button> </li>
+            <li> <button type="button" id="playList-play-button" class="status-indicator off"> ▶ </button> </li>
+            <li> <button type="button" id="playList-play-button" class="status-indicator off"> ■ </button> </li>
+            <li> <button type="button" id="playList-play-button" class="status-indicator off"> ↺ </button> </li>
+            <li> <button type="button" id="playList-play-button" class="status-indicator off"> Save </button> </li>
+        </ul>
+
         <div id="windowSelection">
             <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
             <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Roll </button>
+            <button class="windowSelectionButton" id="saved-tracks-selection-button"> Saved Tracks </button> 
         </div>
     </div>
     
@@ -58,11 +68,11 @@
 
         <div class="topBar dragSelector">
           <h1 style="font-size: 10px; color: white; user-select: none; "> Channel Rack </h1>
-          <button type="button" id="channelRack-loopButton" class="statusIndicator off"> L </button>
-          <button type="button" id="channelRack_playButton" class="statusIndicator off"> ▶ </button>
-          <button type="button" id="channelRack_stopButton" class="statusIndicator off"> ■ </button>
-          <button type="button" id="channelRack_resetButton" class="statusIndicator off"> ↺ </button>
-          <button type="button" id="channelRack-saveButton" class="statusIndicator off"> Save </button>
+          <button type="button" id="channelRack-loopButton" class="status-indicator off"> L </button>
+          <button type="button" id="channelRack_playButton" class="status-indicator off"> ▶ </button>
+          <button type="button" id="channelRack_stopButton" class="status-indicator off"> ■ </button>
+          <button type="button" id="channelRack_resetButton" class="status-indicator off"> ↺ </button>
+          <button type="button" id="channelRack-saveButton" class="status-indicator off"> Save </button>
 
           <button type="button" class="closeButton"> X </button>
         </div>
@@ -82,6 +92,16 @@
 
     </div>
 
+    <div id="saved-tracks-window" class="window dragPane">
+        <div class="topBar dragSelector">
+            <button class="closeButton"> X </button>
+        </div>
+
+        <div id="saved-tracks">
+
+        </div>
+    </div>
+
 
 
 
@@ -89,5 +109,6 @@
     <script src="playlist.js"></script>
     <script src="dragPane.js"> </script>
     <script src="channelRack.js"></script>
+    <script src="savedTracks.js"></script>
 </body>
 </html>

@@ -7,9 +7,15 @@ function program() {
     $("#channelRack .topBar .closeButton").click(function() {
       $("#channelRack").hide();
     });
+
+    function getColumnSize() {
+      return $("#channelRack").width() / (measuresVisible * 4);
+    }
+
+    const measuresVisible = 6;
   
     channelRack = {
-      visibleBeats: 6, //In measures
+      beatsOnRack: 6, //In measures
       notes: [],
       sounds: [createSound("Kick", "kick.mp3"),
         createSound("clap", "clap.mp3"),
@@ -73,7 +79,7 @@ function program() {
 
       playIfFinished: function() {
         if (!this.playing) {
-          this.currentTick = 0;
+          this.currentTick = 1;
           this.playTrack();
         }
       },
@@ -85,7 +91,7 @@ function program() {
       restart: function() {
         this.playing = false;
         setTimeout(function() {
-          channelRack.currentTick = 0;
+          channelRack.currentTick = 1;
           channelRack.playTrack();
         }, getTickSpeed() + 1);
       },
@@ -134,7 +140,7 @@ function program() {
               channelRack.playing = false;
               $(`#channelRack table tr td`).each(function() { removePlayLine( $(this) )});
               if(channelRack.looping) {
-                channelRack.currentTick = 0;
+                channelRack.currentTick = 1;
                 window.setTimeout(() => channelRack.playTrack(), 0);
               }
               return;
@@ -161,18 +167,20 @@ function program() {
       },
 
       extend: function(extendAmount) {
+        this.beatsOnRack += 1;
         const column = document.createElement("td");
         column.classList.add("endOfRack");
+        $(column).css("min-width", `${getColumnSize()}px`);
         $("#channelRack .main table tr").each( function() {
           for (let i = 0; i < 4; i++) {
             $(column).clone().appendTo($(this));
           }
         });
-        columnSize = $("#channelRack").width() / (this.visibleBeats * 4);
+        columnSize = getColumnSize();
         console.log(`column size: ${columnSize}`);
 
         $("#channelRack .main table tr td").css("min-width", columnSize + "px");
-        $(`#channelRack .main table tr td:nth-of-type(n + ${(this.visibleBeats - 2) * 4 + 1})`).removeClass("endOfRack");
+        $(`#channelRack .main table tr td:nth-of-type(n + ${(this.beatsOnRack - 2) * 4 + 1})`).removeClass("endOfRack");
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
         channelRackEvents();
       }
@@ -193,12 +201,12 @@ function program() {
       const tablerow = document.createElement("tr");
       const tablecol = document.createElement("td");
       mainArea.innerHTML = "";
-      columnSize = $("#channelRack").width() / (channelRack.visibleBeats * 4);
+      columnSize = getColumnSize();
   
       for (let row = 0; row < channelRack.sounds.length; row++) {
         let currentRow = tablerow.cloneNode(true);
         table.append(currentRow);
-        for (let col = 0; col < channelRack.visibleBeats * 4 + 1; col++) {
+        for (let col = 0; col < channelRack.beatsOnRack * 4 + 1; col++) {
           let currentCol = tablecol.cloneNode(true);
           $(currentCol).css("min-width", columnSize + "px");
           
@@ -209,7 +217,7 @@ function program() {
             currentCol.append(instrumentName);
           }
 
-          if (col >= (channelRack.visibleBeats - 1) * 4) {
+          if (col >= (channelRack.beatsOnRack - 1) * 4) {
             // $(currentCol).addClass("endOfRack");
             currentCol.classList.add("endOfRack");
           }
@@ -289,7 +297,7 @@ function program() {
           $(cell).css('background-color', '');
         }
 
-        if (col > (channelRack.visibleBeats - 1) * 4) {
+        if (col > (channelRack.beatsOnRack - 1) * 4) {
           channelRack.extend();
         }
       } 
@@ -323,7 +331,7 @@ function program() {
       } else if (channelRack.currentTick < channelRack.trackLength) {
         channelRack.playTrack();
       } else if (channelRack.currentTick >= channelRack.trackLength) {
-        channelRack.currentTick = 0;
+        channelRack.currentTick = 1;
         channelRack.playTrack();
       }
     }
@@ -361,7 +369,7 @@ function program() {
 
       $('#channelRack_stopButton').click(function() {
         channelRack.playing = false;
-        window.setTimeout(() => channelRack.currentTick = 0, getTickSpeed());
+        window.setTimeout(() => channelRack.currentTick = 1, getTickSpeed());
       });
 
       $('#channelRack_resetButton').click(function() {
