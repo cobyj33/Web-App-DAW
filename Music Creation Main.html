@@ -8,8 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
     <link rel="stylesheet" type="text/css" href="channelRack.css">
-    <link rel="stylesheet" type="text/css" href="savedTracks.css">
+    <link rel="stylesheet" type="text/css" href="savedPatterns.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FitText.js/1.2.0/jquery.fittext.min.js"></script>
 
 </head>
 <body>
@@ -25,19 +26,19 @@
         </ul> 
 
         <div id="playListInfoBar">
-            <div>
-                <h3> BPM: </h3>
-                <input type="number" id="bpm-display" min="10" max="300">
+            <div class="input-container">
+                <h3 class="input-info"> BPM: </h3>
+                <input type="number" id="bpm-display" min="10" max="300" class="user-input">
             </div>
 
-            <div>
-                <h3> Time Signature: </h3>
-                <input type="text" id="time-signature-display" placeholder="4/4" disabled>
+            <div class="input-container">
+                <h3 class="input-info"> Time Signature: </h3>
+                <input type="text" id="time-signature-display" placeholder="4/4" disabled class="user-input">
             </div>
 
-            <div>
-                <h3> Current Time: </h3>
-                <input type="number" id="current-time-display" min="0">
+            <div class="input-container">
+                <h3 class="input-info"> Current Time: </h3>
+                <input type="number" id="current-time-display" min="0" class="user-input">
             </div>
         </div>
 
@@ -52,7 +53,7 @@
         <div id="windowSelection">
             <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
             <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Roll </button>
-            <button class="windowSelectionButton" id="saved-tracks-selection-button"> Saved Tracks </button> 
+            <button class="windowSelectionButton" id="saved-patterns-selection-button"> Saved Patterns </button> 
         </div>
     </div>
     
@@ -83,6 +84,11 @@
 
         <div class="bottomBar">
           <button class="addSoundButton"> Add Sound Button </button>
+          <div class="input-container">
+              <h3 class="input-info"> Pattern Name: </h3>
+              <input type="text" class="user-input" id="channel-rack-name-input">
+          </div>
+          
         </div>
         
     </div>
@@ -92,14 +98,38 @@
 
     </div>
 
-    <div id="saved-tracks-window" class="window dragPane">
+    <div id="saved-patterns-window" class="window dragPane">
         <div class="topBar dragSelector">
-            <button class="closeButton"> X </button>
+            <h3 id="current-selected-track"> Currently Selected: N/A </h3>
+            <button class="closeButton" id="saved-patterns-close-button"> X </button>
         </div>
 
-        <div id="saved-tracks">
+        <div id="saved-patterns">
+
+            <div class="pattern-instance">
+                <div class="pattern-edit-area">
+                    <button class="pattern-edit-button"> ^ </button>
+                    <div class="pattern-edit-dropdown">
+                        <button type="button" class="change-pattern-name"> Change Name </button>
+                    </div>
+                </div>
+                <div class="pattern-visualizer">
+                    
+                </div>
+                <h2 class="pattern-title"> New Pattern #1 </h2>
+                <div class="pattern-info">
+                    <h3> Length: </h3>
+                    <h3> Notes: </h3>
+                </div>
+                <div class="pattern-interact">
+                    <button type="button" class="windowSelectionButton pattern-play-button"> Play </button>
+                    <button type="button" class="windowSelectionButton pattern-select-button"> Select </button>
+                </div>
+            </div>
+
 
         </div>
+
     </div>
 
 
@@ -109,6 +139,6 @@
     <script src="playlist.js"></script>
     <script src="dragPane.js"> </script>
     <script src="channelRack.js"></script>
-    <script src="savedTracks.js"></script>
+    <script src="savedPatterns.js"></script>
 </body>
 </html>

@@ -17,16 +17,16 @@ function program() {
     channelRack = {
       beatsOnRack: 6, //In measures
       notes: [],
-      sounds: [createSound("Kick", "kick.mp3"),
-        createSound("clap", "clap.mp3"),
-        createSound("snare", "snare.mp3"),
-        createSound("HiHat", "hihat.mp3")],
-      currentTick: 0,
+      sounds: [new Sound("Kick", "kick.mp3"),
+        new Sound("clap", "clap.mp3"),
+        new Sound("snare", "snare.mp3"),
+        new Sound("HiHat", "hihat.mp3")],
+      currentTick: 1,
       looping: false,
       playing: false,
       metronome: false,
 
-      get trackLength() {
+      get patternLength() {
         let max = 0;
         for (let i = 0; i < this.notes.length; i++) {
           if (this.notes[i].tick > max) {
@@ -40,13 +40,13 @@ function program() {
       },
 
       addSound: function(soundName, src) {
-        this.sounds.push(createSound(soundName, src))
+        this.sounds.push(new Sound(soundName, src))
       },
 
       selectArea: function({sound, tick}) {
-        let newNote = createNote(sound, tick);
+        let newNote = new Note(sound, tick);
         newNote.play();
-        this.notes.push(createNote(sound, tick));
+        this.notes.push(newNote);
       },
 
       deselectArea: function(note) {
@@ -80,7 +80,7 @@ function program() {
       playIfFinished: function() {
         if (!this.playing) {
           this.currentTick = 1;
-          this.playTrack();
+          this.playPattern();
         }
       },
 
@@ -92,11 +92,11 @@ function program() {
         this.playing = false;
         setTimeout(function() {
           channelRack.currentTick = 1;
-          channelRack.playTrack();
+          channelRack.playPattern();
         }, getTickSpeed() + 1);
       },
 
-      playTrack: function() {
+      playPattern: function() {
         if (this.playing || this.notes.length == 0) {
           return;
         }
@@ -104,7 +104,7 @@ function program() {
         console.log(this.playing);
         let queue = [...this.notes].sort((a, b) => a.tick - b.tick)
         queue = queue.filter((note) => { return note.tick >= this.currentTick} );
-        let maxTime = this.trackLength;
+        let maxTime = this.patternLength;
         let tickTime = getTickSpeed();
         playbackLoop();
 
@@ -141,7 +141,7 @@ function program() {
               $(`#channelRack table tr td`).each(function() { removePlayLine( $(this) )});
               if(channelRack.looping) {
                 channelRack.currentTick = 1;
-                window.setTimeout(() => channelRack.playTrack(), 0);
+                window.setTimeout(() => channelRack.playPattern(), 0);
               }
               return;
             }
@@ -162,14 +162,20 @@ function program() {
         }
       },
 
-      exportRackInfo: function() {
-        return createTrack(notes);
+      getPattern: function() {
+        let currentPattern = new Pattern(this.notes);
+        currentPattern.name = document.getElementById("channel-rack-name-input").value;
+        return currentPattern;
       },
 
       extend: function(extendAmount) {
         this.beatsOnRack += 1;
         const column = document.createElement("td");
         column.classList.add("endOfRack");
+        $("#channelRack .main table tr .endOfRack").each(function() {
+          this.classList.remove("endOfRack");
+        });
+
         $(column).css("min-width", `${getColumnSize()}px`);
         $("#channelRack .main table tr").each( function() {
           for (let i = 0; i < 4; i++) {
@@ -180,14 +186,13 @@ function program() {
         console.log(`column size: ${columnSize}`);
 
         $("#channelRack .main table tr td").css("min-width", columnSize + "px");
-        $(`#channelRack .main table tr td:nth-of-type(n + ${(this.beatsOnRack - 2) * 4 + 1})`).removeClass("endOfRack");
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
         channelRackEvents();
       }
     }
 
     function createNoteFromLocation(row, col) {
-      return createNote(channelRack.sounds[row], col);
+      return new Note(channelRack.sounds[row], col);
     }
     
     function appendSound() {
@@ -217,7 +222,7 @@ function program() {
             currentCol.append(instrumentName);
           }
 
-          if (col >= (channelRack.beatsOnRack - 1) * 4) {
+          if (col >= (channelRack.beatsOnRack - 1) * 4 + 1) {
             // $(currentCol).addClass("endOfRack");
             currentCol.classList.add("endOfRack");
           }
@@ -226,6 +231,7 @@ function program() {
           currentRow.append(currentCol);
         }
       }
+      
       mainArea.append(table);
       applyDefaultCSS();
       function applyDefaultCSS() {
@@ -328,11 +334,11 @@ function program() {
     function channelRackPlayAction() {
       if (channelRack.playing) {
         channelRack.pause();
-      } else if (channelRack.currentTick < channelRack.trackLength) {
-        channelRack.playTrack();
-      } else if (channelRack.currentTick >= channelRack.trackLength) {
+      } else if (channelRack.currentTick < channelRack.patternLength) {
+        channelRack.playPattern();
+      } else if (channelRack.currentTick >= channelRack.patternLength) {
         channelRack.currentTick = 1;
-        channelRack.playTrack();
+        channelRack.playPattern();
       }
     }
   
@@ -377,7 +383,7 @@ function program() {
       });
 
       $('#channelRack-saveButton').click(function() {
-        console.log(channelRack.exportRackInfo());
+        console.log(savedTracks.addPattern(channelRack.getPattern()));
       });
 
       $("#channelRack .bottomBar .addSoundButton").click(() => appendSound());
@@ -393,6 +399,8 @@ function program() {
         channelRackEvents();
         initializeButtonEvents();
     });
+
+    
 }
   
 $(window).on('load', program);

@@ -28,7 +28,6 @@ function run() {
     $(".dragPane .dragSelector").mousedown(function(e) {
       isMouseDown = true;
       let offset = $(this).parent().offset();
-      console.log($(this)[0].style.left);
       mouseXOffset = e.clientX - offset.left;
       mouseYOffset = e.clientY - offset.top;
     });
