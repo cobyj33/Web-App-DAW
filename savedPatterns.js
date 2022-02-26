@@ -68,11 +68,6 @@ function savedPatternsProgram() {
             
             $(".pattern-edit-button").click(function() {
                 $(this).parent().find(".pattern-edit-dropdown").toggle();
-                if ($(this).parent().find(".pattern-edit-dropdown").is(":visible")) {
-                    $(this).css("right", String($(this).parent().width() / 2 - $(this).width() / 2) + "px");
-                } else {
-                    $(this).css("right", "0px");
-                }
             });
 
             $(".pattern-remove-button").click(function() {
@@ -85,6 +80,19 @@ function savedPatternsProgram() {
             $(".pattern-play-button").click(function() {
                 playPattern(getPatternOfElement(this), $(this).parents(".pattern-instance")[0]);
             });
+
+            $(".pattern-time-manager input").on('input', function() {
+                getPatternOfElement(this).playing = false;
+                $(".pattern-time-manager p").text(`Tick ${$(this).val()} / ${$(this).attr('max')}`);
+            });
+
+            $(".pattern-time-manager input").on('change', function() {
+                let currentPattern = getPatternOfElement(this);
+                $(".pattern-time-manager p").text(`Tick ${$(this).val()} / ${$(this).attr('max')}`);
+                currentPattern.currentTick = $(this).val();
+                currentPattern.playing = false;
+                setTimeout(() => currentPattern.play(), getTickSpeed());
+            });
         }
 
         function playPattern(pattern, patternInstance) {
@@ -96,11 +104,16 @@ function savedPatternsProgram() {
             pattern.play();
 
             let currentVisualizer = $(patternInstance).find(".pattern-visualizer")[0];
+            let startTime = Date.now();
+            let desiredTime = 0;
+            let tickTime = getTickSpeed();
             visualize();
             function visualize() {
+                $(patternInstance).find(".pattern-time-manager input").val(pattern.currentTick);
+                $(patternInstance).find(".pattern-time-manager p")
+                    .text(`Tick ${pattern.currentTick} / ${$(patternInstance).find(".pattern-time-manager input").attr('max')}`);
                 let currentNotes = [...pattern.currentlyPlaying];
                 $(currentVisualizer).find("tr td").css("background-color", "");
-                $(patternInstance).find(".pattern-time-manager input").val(pattern.currentTick);
                 
                 for (let i = 0; i < currentNotes.length; i++) {
                     let soundName = currentNotes[i].sound.name;
@@ -109,7 +122,9 @@ function savedPatternsProgram() {
                 }  
 
                 if (pattern.playing) {
-                    window.setTimeout( () => visualize(), getTickSpeed());
+                    let diff = (Date.now() - startTime) - desiredTime;
+                    desiredTime += tickTime;
+                    window.setTimeout( () => visualize(), (tickTime - diff));
                 } else {
                     $(currentVisualizer).find("tr td").css("background-color", "");
                 }
@@ -181,12 +196,23 @@ function makePatternFromJSONObject(jsonObject) {
     return pattern;
 }
 
-fetch("basicPatterns.json")
-    .then(file => {return file.json()})
-    .then(patterns => patterns.forEach( function(pattern) {
-        let conversion = makePatternFromJSONObject(pattern);
-        savedPatterns.addPattern(conversion);
-    }))
-    .catch(error => console.log('could not load default patterns'));
+$(window).on('load', function() {
+    fetch("basicPatterns.json")
+        .then(file => {return file.json()})
+        .then(patterns => patterns.forEach( function(pattern) {
+            let conversion = makePatternFromJSONObject(pattern);
+            savedPatterns.addPattern(conversion);
+        }))
+        .then(() => {
+            
+            if (savedPatterns.patterns.length > 0) {
+                selectedPattern = savedPatterns.patterns[0];
+            }
 
-$(window).on('load', savedPatternsProgram);
+        })
+        .then(() => savedPatternsProgram())
+        .catch(error => {
+            console.log('could not load default patterns');
+            savedPatternsProgram();
+        });
+});

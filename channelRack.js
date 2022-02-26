@@ -102,6 +102,9 @@ function program() {
         queue = queue.filter((note) => { return note.tick >= this.currentTick} );
         let maxTime = this.patternLength;
         let tickTime = getTickSpeed();
+
+        let startTime = Date.now();
+        let desiredTime = 0;
         playbackLoop();
 
         function showPlayLine(cell) {
@@ -126,7 +129,6 @@ function program() {
             return;
           }
           
-          console.log(`tick: ${currentTick} tickTime: ${tickTime}`);
           if (queue.length == 0) {
             if (currentTick <= maxTime) {
               channelRack.currentTick++;
@@ -151,8 +153,11 @@ function program() {
             }
           }
 
+          let diff = (Date.now() - startTime) - desiredTime;
+          console.log(`diff: ${diff}`);
           channelRack.currentTick++;
-          window.setTimeout( () => playbackLoop(), tickTime);
+          desiredTime += tickTime;
+          window.setTimeout( () => playbackLoop(), (tickTime - diff));
         }
       },
 
@@ -267,7 +272,7 @@ function program() {
     let erasing = false;
     window.addEventListener('mouseup', () => { mouseIsDown = false; erasing = false; });
     window.addEventListener('dragend', () => { mouseIsDown = false; erasing = false; });
-    
+
     function channelRackEvents() {
 
         $("#channelRack .main table tr td:nth-of-type(0)").off();
