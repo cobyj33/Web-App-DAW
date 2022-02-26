@@ -52,16 +52,19 @@ class Note {
 class Pattern {
   constructor(notes) {
     this.notes = [...notes];
+    this.currentlyPlaying = [];
     this.startingBeat = 0;
     this.currentTick = 1;
     this.name = "";
+    this.playing = false;
+    //cannot be looped
   }
 
   get patternLength() {
     let max = 0;
-    for (let i = 0; i < notes.length; i++) {
-      if (notes[i].tick > max)
-        max = notes[i].tick;
+    for (let i = 0; i < this.notes.length; i++) {
+      if (this.notes[i].tick > max)
+        max = this.notes[i].tick;
     }
 
     if (max % 4 != 0) {
@@ -70,23 +73,66 @@ class Pattern {
     return max;
   }
 
+  get sounds() {
+    let noteSounds = [];
+    for (let i = 0; i < this.notes.length; i++) {
+      let currentSound = this.notes[i].sound;
+      let contains = false;
+      for (let j = 0; j < noteSounds.length; j++) {
+        if (_.isEqual(noteSounds[j], currentSound)) {
+          contains = true;
+          break;
+        }
+      }
+
+      if (!contains) {
+        noteSounds.push(currentSound);
+      }
+    }
+    console.log(noteSounds.length);
+    return noteSounds;
+  }
+
+  clone() {
+    return new Pattern(this.notes);
+  }
+
   playFromStart() {
-    this.currentTick = 0;
+    this.currentTick = 1;
     this.play();
   }
 
+  pause() {
+    this.playing = false;
+    this.currentlyPlaying = [];
+  }
+
   play() {
+    this.playing = true;
     let tickTime = getTickSpeed();
     let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
     let patternLength = this.patternLength;
+    let pattern = this;
     playbackLoop();
 
     function playbackLoop() {
-      if (pattern.currentTick > patternLength || queue.length == 0)
+      pattern.currentlyPlaying = [];
+      if (!pattern.playing) {
         return;
+      } else if (pattern.currentTick > patternLength) {
+        pattern.playing = false;
+        pattern.currentTick = 1;
+        return;
+      } else if (queue.length < 1) {
+        pattern.currentTick++;
+        window.setTimeout( () => playbackLoop(), tickTime);
+        return;
+      }
+        
       
       while (queue[0].tick == pattern.currentTick) {
         console.log("playing sound");
+        pattern.currentlyPlaying.push(queue[0]);
         queue[0].play();
         queue.shift();
         if (queue.length == 0) {
@@ -96,6 +142,7 @@ class Pattern {
       
       pattern.currentTick++;
       window.setTimeout( () => playbackLoop(), tickTime);
+      return;
     }
   }
 
@@ -199,6 +246,21 @@ $(document).ready(function() {
 
   $("#current-time-display").on('input', function() {
     //TODO: implement time counter
+  });
+
+  $(".window").on('mouseenter', function() {
+    $(this).css("z-index", "1000");
+  });
+
+  let zIndex = 0;
+
+  $(".window").on('mouseleave', function() {
+    $(this).css("z-index", String(zIndex++));
+    if (zIndex > 1000) {
+      zIndex = 0;
+      $(".window").css("z-index", "0");
+      $(this).css("z-index", String(zIndex++));
+    }
   });
 
 

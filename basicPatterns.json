@@ -1,0 +1,30 @@
+[ {
+    "notes":[{"sound":{"name":"Kick","source":"kick.mp3"},"tick":1},
+            {"sound":{"name":"Kick","source":"kick.mp3"},"tick":15},
+            {"sound":{"name":"Kick","source":"kick.mp3"},"tick":19},
+            {"sound":{"name":"clap","source":"clap.mp3"},"tick":9},
+            {"sound":{"name":"clap","source":"clap.mp3"},"tick":25},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":31},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":29},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":27},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":25},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":23},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":21},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":19},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":17},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":15},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":13},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":11},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":9},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":7},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":5},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":1},
+            {"sound":{"name":"HiHat","source":"hihat.mp3"},"tick":3}
+            ],
+        "currentlyPlaying":[],
+        "startingBeat":0,
+        "currentTick":1,
+        "name":"basic Drum beat",
+        "playing":false
+    }
+]

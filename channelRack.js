@@ -2,11 +2,7 @@ const selectionColor = "rgb(255, 255, 255)";
 let columnSize = 10; //pixels
 
 function program() {
-    console.log("Hello");
     $("#channelRack").hide();
-    $("#channelRack .topBar .closeButton").click(function() {
-      $("#channelRack").hide();
-    });
 
     function getColumnSize() {
       return $("#channelRack").width() / (measuresVisible * 4);
@@ -46,6 +42,7 @@ function program() {
       selectArea: function({sound, tick}) {
         let newNote = new Note(sound, tick);
         newNote.play();
+        this.currentTick = 1;
         this.notes.push(newNote);
       },
 
@@ -101,7 +98,6 @@ function program() {
           return;
         }
         this.playing = true;
-        console.log(this.playing);
         let queue = [...this.notes].sort((a, b) => a.tick - b.tick)
         queue = queue.filter((note) => { return note.tick >= this.currentTick} );
         let maxTime = this.patternLength;
@@ -148,23 +144,30 @@ function program() {
           }
 
           while (queue[0].tick == currentTick) {
-            console.log("playing sound");
             queue[0].play();
             queue.shift();
-            console.log(`queue length: ${queue.length}`);
             if (queue.length == 0) {
               break;
             }
           }
 
           channelRack.currentTick++;
-          window.setTimeout( () => playbackLoop(channelRack.currentTick), tickTime);
+          window.setTimeout( () => playbackLoop(), tickTime);
         }
       },
 
       getPattern: function() {
+        if (this.notes.length == 0) {
+          console.log("cannot get empty pattern");
+          return;
+        }
+
         let currentPattern = new Pattern(this.notes);
         currentPattern.name = document.getElementById("channel-rack-name-input").value;
+        if (currentPattern.name == "") {
+          currentPattern.name = `New Pattern #${savedPatterns.patterns.length + 1}`;
+        }
+
         return currentPattern;
       },
 
@@ -183,7 +186,6 @@ function program() {
           }
         });
         columnSize = getColumnSize();
-        console.log(`column size: ${columnSize}`);
 
         $("#channelRack .main table tr td").css("min-width", columnSize + "px");
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
@@ -231,7 +233,7 @@ function program() {
           currentRow.append(currentCol);
         }
       }
-      
+
       mainArea.append(table);
       applyDefaultCSS();
       function applyDefaultCSS() {
@@ -262,10 +264,12 @@ function program() {
     }
 
     let mouseIsDown = false;
-    window.addEventListener('mouseup', () => mouseIsDown = false);
-    window.addEventListener('dragend', () => mouseIsDown = false);
+    let erasing = false;
+    window.addEventListener('mouseup', () => { mouseIsDown = false; erasing = false; });
+    window.addEventListener('dragend', () => { mouseIsDown = false; erasing = false; });
+    
     function channelRackEvents() {
-      
+
         $("#channelRack .main table tr td:nth-of-type(0)").off();
         $("#channelRack .main table tr td:nth-of-type(0)").mousedown(function() {
           const tableName = $(this);
@@ -288,29 +292,30 @@ function program() {
       function channelRackInput(cell) {
         let row = $(cell).parent().index();
         let col = $(cell).index();
-        console.log(` clicked ${row} ${col}`);
         if (col <= 0) {
           return;
         }
 
         let selectedNote = createNoteFromLocation(row, col);
-
-        channelRack.toggleArea(selectedNote);
-
-        if (channelRack.isAreaSelected(selectedNote)) {
-          $(cell).css('background-color', '#FFFFFF');
+        if (erasing) {
+          if (channelRack.isAreaSelected(selectedNote)) {
+            $(cell).css('background-color', '');
+            channelRack.deselectArea(selectedNote);
+          }
         } else {
-          $(cell).css('background-color', '');
-        }
-
-        if (col > (channelRack.beatsOnRack - 1) * 4) {
-          channelRack.extend();
+          if (!channelRack.isAreaSelected(selectedNote)) {
+            $(cell).css('background-color', '#FFFFFF');
+            channelRack.selectArea(selectedNote);
+          }
         }
       } 
       
       $("#channelRack .main table tr td").off();
       $("#channelRack .main table tr td").mousedown(function() {
         mouseIsDown = true;
+        if ($(this).css("background-color") == "rgb(255, 255, 255)") {
+          erasing = true;
+        }
         channelRackInput(this);
       });
 
@@ -318,10 +323,15 @@ function program() {
         if (mouseIsDown) {
           channelRackInput(this);
         }
+
+        if ($(this).index() > (channelRack.beatsOnRack - 1) * 4) {
+          channelRack.extend();
+        }
       });
 
       $("#channelRack .main").mouseleave(function() {
         mouseIsDown = false;
+        erasing = false;
       });
 
 
@@ -346,21 +356,15 @@ function program() {
     window.onkeydown = keyPressed;
     function keyPressed(event) {
       let keyCode = event.code;
-      if (keyCode == "KeyC") {
-        constructChannelRack();
-        channelRackEvents();
-        initializeButtonEvents();
-      } else if (keyCode == "Space") {
+      if (keyCode == "Space") {
         channelRackPlayAction();
       }
-      console.log("Key Pressed " + keyCode);
     }
 
     function initializeButtonEvents() {
-      console.log("button events initialized");
+      $("#channelRack button").off();
       $("#channelRack-loopButton").click(function() {
         $(this).blur();
-        console.log("loop button clicked");
         channelRack.looping = !channelRack.looping;
         if (channelRack.looping) {
           $(this).addClass("on");
@@ -383,15 +387,21 @@ function program() {
       });
 
       $('#channelRack-saveButton').click(function() {
-        console.log(savedTracks.addPattern(channelRack.getPattern()));
+        console.log(channelRack.getPattern());
+        savedPatterns.addPattern(channelRack.getPattern());
       });
 
       $("#channelRack .bottomBar .addSoundButton").click(() => appendSound());
+
+      $("#channelRack .topBar .closeButton").click(function() {
+        $("#channelRack").hide();
+      });
     }
   
     constructChannelRack();
     channelRackEvents();
     initializeButtonEvents();
+    $("#channelRack").hide();
 
     $("#channel-rack-selection-button").click(function() {
         $(this).blur();

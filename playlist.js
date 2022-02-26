@@ -1,24 +1,12 @@
 
 window.addEventListener("load", e => {
     
-    /*
-    track {
-        notes: []
-        startingBeat: int
-        currentTick: int
-        play()
-        pause()
-        setTime()
-        tick()
-        get length()
-        isPlaying
-    }
-    */
+    
 
     playlist = {
-        tracks: [],
+        patterns: [],
         currentlyPlaying: [],
-        currentTime: 0,
+        currentTick: 1,
         isPlaying: false,
         isLooped: false,
         metronomePlaying: false,
@@ -37,28 +25,22 @@ window.addEventListener("load", e => {
     }
 
     function constructPlayList() {
-        const toolBar = document.querySelector("toolBar");
-        const playlist = document.querySelector("playlist");
-        const pianoRoll = document.querySelector("pianoRoll");
-        const channelRack = document.querySelector("channelRack");
-
-        const playListTable = document.querySelector("#playlistTable");
-        var playlistRows = 10;
-        var playlistCols = 20;
+        const playListTable = document.getElementById("playlist-table");
+        var playlistRows = 4;
+        var playlistCols = 10;
         
-        let playlistRow = document.createElement("tr")
-        let playlistCol = document.createElement("td")
 
         for (let row = 0; row < playlistRows; row++) {
-            let currentRow = playlistRow.cloneNode(true);
-            currentRow.classList.add("playlistRow");
+            let currentRow = document.createElement("tr");
             for (let col = 0; col < playlistCols; col++) {
-                let currentCol = playlistCol.cloneNode(true);
-                currentCol.classList.add("playlistCol");
-                currentCol.style.borderRadius = "5px";
-                currentRow.append(currentCol.cloneNode(true));
+                let currentCol = document.createElement("td");
+                // if ((col / 4 | 0) % 2 == 1) {
+                //     currentCol.classList.add("dark");
+                // }
+
+                currentRow.append(currentCol);
             }
-            playListTable.append(currentRow.cloneNode(true));
+            playListTable.append(currentRow);
         }
     
     }

@@ -5,13 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> JJ STUDIO </title>
+    <link rel="shortcut icon" href="#">
     <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
     <link rel="stylesheet" type="text/css" href="channelRack.css">
     <link rel="stylesheet" type="text/css" href="savedPatterns.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FitText.js/1.2.0/jquery.fittext.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
 </head>
 <body>
 
@@ -57,15 +58,15 @@
         </div>
     </div>
     
-    <div id="playlist" class="window">
+    <div id="playlist">
         
-        <table id="playlistTable"> 
+        <table id="playlist-table"> 
             
         </table>
         
     </div>
 
-    <div id="channelRack" class="dragPane"> 
+    <div id="channelRack" class="dragPane window"> 
 
         <div class="topBar dragSelector">
           <h1 style="font-size: 10px; color: white; user-select: none; "> Channel Rack </h1>
@@ -79,14 +80,14 @@
         </div>
         
         <div class="main">
-          
+          <!-- constructed in javascript -->
         </div>
 
         <div class="bottomBar">
-          <button class="addSoundButton"> Add Sound Button </button>
+          <button class="addSoundButton"> Add Sound </button>
           <div class="input-container">
               <h3 class="input-info"> Pattern Name: </h3>
-              <input type="text" class="user-input" id="channel-rack-name-input">
+              <input type="text" class="user-input" id="channel-rack-name-input" placeholder="">
           </div>
           
         </div>
@@ -113,15 +114,32 @@
                         <button type="button" class="change-pattern-name"> Change Name </button>
                     </div>
                 </div>
-                <div class="pattern-visualizer">
-                    
-                </div>
+
+                <table class="pattern-visualizer">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td> Kick </td>
+                        <td> Snare </td>
+                        <td> Clap </td>
+                        <td> HiHat </td>
+                    </tr>
+                </table>
+
                 <h2 class="pattern-title"> New Pattern #1 </h2>
                 <div class="pattern-info">
                     <h3> Length: </h3>
                     <h3> Notes: </h3>
                 </div>
                 <div class="pattern-interact">
+                    <div class="pattern-time-manager">
+                        <input type="range" min="1" max="7">
+                        <p style="color: white;"> Tick 1 / 7 </p>
+                    </div>
                     <button type="button" class="windowSelectionButton pattern-play-button"> Play </button>
                     <button type="button" class="windowSelectionButton pattern-select-button"> Select </button>
                 </div>

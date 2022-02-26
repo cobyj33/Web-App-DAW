@@ -3,14 +3,11 @@
     width: 40vw;
     min-width: 40vw;
     min-height: 40vh;
-    border: 2px solid black;
     background-color: darkgray;
     position: fixed;
     top: 10vh;
     left: 20vw;
-    z-index: 100;
-    resize: both;
-    overflow: hidden;
+    border-bottom: 3px solid black;
 }
 
 #current-selected-track {
@@ -30,13 +27,16 @@
 
 #saved-patterns-window #saved-patterns {
     min-width: 100%;
-    background-color: transparent;
+    max-height: 90%;
+    min-height: 90%;
+    background: radial-gradient(black, #222222);
     display: flex;
     flex-wrap: nowrap;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 
@@ -56,14 +56,47 @@
     min-height: 120px;
     margin: 5%;
     overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.pattern-instance * {
+    text-align: center !important;
 }
 
 .pattern-visualizer {
-    grid-row: 1 / 4;
+    grid-row: 1 / 3;
     grid-column: 1 / 4;
     background-color: pink;
     z-index: 1;
+    max-width: 100%;
+    max-height: 100%;
+    background-color: transparent;
 }
+
+.pattern-visualizer tr:nth-of-type(1) {
+    height: 75%;
+}
+
+.pattern-visualizer tr:nth-of-type(1) td:nth-of-type(even) {
+    background-color: #222222;
+}
+
+.pattern-visualizer tr:nth-of-type(1) td:nth-of-type(odd) {
+    background-color: #444444;
+}
+
+.pattern-visualizer tr:nth-of-type(2) {
+    height: 25%;
+}
+
+.pattern-visualizer tr:nth-of-type(2) td {
+    background-color: black;
+}
+
+.pattern-visualizer tr td {
+    border: 1px solid white;
+}
+
 
 .pattern-title {
     grid-row: 1 / 2;
@@ -91,7 +124,7 @@
 
 .pattern-interact {
     grid-row: 3 / 4;
-    grid-column: 4 / 6;
+    grid-column: 1 / 6;
     min-height: 40px;
     display: flex;
     flex-wrap: nowrap;
@@ -111,6 +144,8 @@
 .pattern-edit-button {
     color: white;
     float: right;
+    position: relative;
+    transition: right 1s;
     text-shadow: 0 0 2px black;
     background-color: transparent;
     border: none;
@@ -153,7 +188,21 @@
 .pattern-edit-dropdown button:active {
     transition: color 0.1s;
     color: darkgreen;
-}  
+}
+
+.pattern-remove-button:active {
+    transition: color 0.1s !important;
+    color: red !important;
+}
+
+.pattern-remove-button:hover {
+    transition: color 0.5s !important;
+    color: lightcoral !important;
+}
+
+.pattern-time-manager * {
+    margin: 0;
+}
 
 
 /* .pattern-interact button {

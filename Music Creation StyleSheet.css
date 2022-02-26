@@ -3,10 +3,17 @@ html, body {
     width: 100%; 
     margin: 0; 
     background-color: black;
+    display: inline-block;
 }
 
 * {
     font-family: 'Staatliches', cursive;
+    user-select: none;
+    color: white;
+}
+
+input {
+    user-select: auto;
 }
 
 #toolBar > * {
@@ -78,23 +85,31 @@ html, body {
     margin-top: 10px;
 }
 
-#playlistTable {
+#playlist-table {
     width: 100%;
+    background-color: white;
 }
 
-.playlistRow {
+#playlist-table tr {
     height: max(100px, 10vh);
     width: 100vw;
     background-color: #AAAAAA;
     border: 1px solid black;
 }
 
-.playlistCol {
-    min-height: 100%;
-    border: 1px solid black;
+#playlist-table tr td {
+    height: max(100px, 10vh);
+    min-height: max(100px, 10vh);
+    min-width: 100px;
+    border: 1px solid white;
+    border-radius: 5px;
 }
 
-.playlistCol:hover {
+/* #playListTable tr td.dark {
+    background-color: #222222;
+} */
+
+#playlist-table tr td:hover {
     background-color: black;
 }
 
@@ -133,7 +148,7 @@ html, body {
 }
 
 .windowSelectionButton:active {
-    transition: translate 1s, background-color 0.2s, color 0.2s, text-shadow 0.2s;
+    transition: translate 0.2s, background-color 0.2s, color 0.2s, text-shadow 0.2s;
     transform: scaleX(1.10) scaleY(1.10);
     background-color: lightgreen;
     color: green;
@@ -141,7 +156,7 @@ html, body {
 }
 
 #piano-rack-selection-button:active {
-    transition: transform 1s, background-color 0.2s, color 0.2s, text-shadow 0.2s;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s, text-shadow 0.2s;
     transform: scaleX(1.10) scaleY(1.10);
     background-color: crimson;
     color: lightcoral;
