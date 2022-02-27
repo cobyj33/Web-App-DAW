@@ -5,13 +5,13 @@ function program() {
     $("#channelRack").hide();
 
     function getColumnSize() {
-      return $("#channelRack").width() / (measuresVisible * 4);
+      return $("#channelRack").width() / (beatsVisible * 4);
     }
 
-    const measuresVisible = 6;
+    const beatsVisible = 6;
   
     channelRack = {
-      beatsOnRack: 6, //In measures
+      beatsOnRack: 6, 
       notes: [],
       sounds: [new Sound("Kick", "kick.mp3"),
         new Sound("clap", "clap.mp3"),
@@ -212,7 +212,9 @@ function program() {
       const table = document.createElement("table");
       const tablerow = document.createElement("tr");
       const tablecol = document.createElement("td");
-      mainArea.innerHTML = "";
+      
+      $(mainArea).find("table").remove();
+
       columnSize = getColumnSize();
   
       for (let row = 0; row < channelRack.sounds.length; row++) {
@@ -242,7 +244,9 @@ function program() {
       mainArea.append(table);
       applyDefaultCSS();
       function applyDefaultCSS() {
+
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
+        $("#channelRack .main table tr td:nth-of-type(16n + 1)").css("border-right", "6px solid black");
 
         $("#channelRack .main table tr td").each(function() {
           let row = $(this).parent().index();
@@ -252,17 +256,15 @@ function program() {
           }
         });
 
-        $("#channelRack .main table tr td:nth-of-type(1)").css({
-          "position": "sticky",
-          "left": "0"
-        });
-
         $("*").attr("draggable", "false");
 
         $("#channelRack").css({
           "top": "40%",
           "left": "10%"
         });
+
+        let autoScrollerLeftOffset = columnSize + Number($("#channelRack .main tr td:first").css('border-right-width').slice(0, -2));
+        $("#channel-rack-autoscroller-left").css("left", autoScrollerLeftOffset + "px");
       }
       
 
@@ -275,7 +277,7 @@ function program() {
 
     function channelRackEvents() {
 
-        $("#channelRack .main table tr td:nth-of-type(0)").off();
+        $("#channelRack .main *").off();
         $("#channelRack .main table tr td:nth-of-type(0)").mousedown(function() {
           const tableName = $(this);
           $(this).innerHTML = '';
@@ -315,7 +317,6 @@ function program() {
         }
       } 
       
-      $("#channelRack .main table tr td").off();
       $("#channelRack .main table tr td").mousedown(function() {
         mouseIsDown = true;
         if ($(this).css("background-color") == "rgb(255, 255, 255)") {
@@ -339,6 +340,81 @@ function program() {
         erasing = false;
       });
 
+
+      //Auto Scrolling Code 
+      let autoScroller = function buildAutoScroller(){
+        let scrollPercentage = 0.5;
+
+        let autoScrollingLeft = false;
+        let autoScrollingRight = false;
+        let scrollDelay = 50;
+        let scrollAmount = 10; //px
+
+        function scrollChannelRackLeft() {
+          console.log("scroll percentage: " + scrollPercentage);
+          let currentLeftScroll = $("#channelRack .main").scrollLeft();
+          if (currentLeftScroll - scrollAmount <= 0) {
+            $("#channelRack .main").scrollLeft(0);
+            $("#channel-rack-autoscroller-left").hide();
+            autoScrollingLeft = false;
+          } else {
+            $("#channelRack .main").scrollLeft(currentLeftScroll - (scrollAmount * scrollPercentage));
+          }
+
+          if (autoScrollingLeft) {
+            setTimeout( () => scrollChannelRackLeft(), scrollDelay);
+          }
+        }
+
+        function scrollChannelRackRight() {
+          console.log("scroll percentage: " + scrollPercentage);
+          let currentLeftScroll = $("#channelRack .main").scrollLeft();
+          let maxScrollRight = $("#channelRack .main")[0].scrollWidth - $("#channelRack .main").width();
+          if (currentLeftScroll + scrollAmount >= maxScrollRight) {
+            channelRack.extend();
+          } else {
+            $("#channelRack .main").scrollLeft( currentLeftScroll + (scrollAmount * scrollPercentage));
+          }
+
+          if (autoScrollingRight) {
+            setTimeout( () => scrollChannelRackRight(), scrollDelay);
+          }
+        }
+
+        $("#channel-rack-autoscroller-right").mouseenter(function() {
+          autoScrollingRight = true;
+          scrollChannelRackRight();
+          $("#channel-rack-autoscroller-left").show();
+        });
+
+        $("#channel-rack-autoscroller-right").mouseleave(function() {
+          autoScrollingRight = false;
+          scrollPercentage = 0.5;
+        });
+
+        $("#channel-rack-autoscroller-right").mousemove(function(e) {
+          let scrollerOffset = $("#channel-rack-autoscroller-right").offset();
+          let distanceFromRight = (e.clientX - scrollerOffset.left);
+          scrollPercentage = distanceFromRight / $("#channel-rack-autoscroller-right").width();
+        });
+
+        $("#channel-rack-autoscroller-left").mouseenter(function() {
+          autoScrollingLeft = true;
+          scrollChannelRackLeft();
+          $("#channel-rack-autoscroller-right").show();
+        });
+
+        $("#channel-rack-autoscroller-left").mouseleave(function() {
+          autoScrollingLeft = false;
+          scrollPercentage = 0.5;
+        });
+
+        $("#channel-rack-autoscroller-left").mousemove(function(e) {
+          let scrollerOffset = $("#channel-rack-autoscroller-left").offset();
+          let distanceFromLeft = ($("#channel-rack-autoscroller-left").width() - (e.clientX - scrollerOffset.left))
+          scrollPercentage = distanceFromLeft / $("#channel-rack-autoscroller-left").width();
+        });
+      }();
 
 
       $("#channelRack .bottomBar .addSoundButton").click(function() {

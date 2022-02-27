@@ -32,6 +32,7 @@
     height: 80%;
     min-height: 0;
     /* width: 100%; */
+    position: relative;
     overflow: auto;
     background-color: #222222;
     border-top: 1px solid white;
@@ -70,6 +71,12 @@
   .endOfRack {
     background-color: black !important;
   }
+
+  #channelRack .main table tr td:nth-of-type(1) {
+    position: sticky;
+    left: 0;
+    z-index: 0;
+  }
   
   /* #channelRack .main table tr td:hover {
     background-color: white;
@@ -100,4 +107,32 @@
     transition: color 0.2s, border-radius 0.2s;
     color: lightgreen;
     border-radius: 5px;
+  }
+
+  .channel-rack-autoscroller {
+    position: absolute;
+    height: 80%; 
+    top: 10%;
+    width: min(15%, 50px);
+    background-color: black;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    opacity: 0%;
+  }
+
+  .channel-rack-autoscroller:hover {
+    transition: opacity 0.2s, background-color 0.2s;
+    opacity: 50%;
+    background-color: black;
+  }
+
+  #channel-rack-autoscroller-left {
+    left: 0;
+  }
+
+  #channel-rack-autoscroller-right {
+    right: 0;
   }

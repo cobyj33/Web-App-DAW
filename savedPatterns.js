@@ -197,6 +197,7 @@ function makePatternFromJSONObject(jsonObject) {
 }
 
 $(window).on('load', function() {
+    $("#saved-patterns-window").hide();
     fetch("basicPatterns.json")
         .then(file => {return file.json()})
         .then(patterns => patterns.forEach( function(pattern) {
