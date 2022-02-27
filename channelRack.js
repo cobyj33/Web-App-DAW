@@ -265,6 +265,8 @@ function program() {
 
         let autoScrollerLeftOffset = columnSize + Number($("#channelRack .main tr td:first").css('border-right-width').slice(0, -2));
         $("#channel-rack-autoscroller-left").css("left", autoScrollerLeftOffset + "px");
+
+        
       }
       
 

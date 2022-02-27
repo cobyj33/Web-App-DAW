@@ -28,7 +28,6 @@ function createPatternHTML(pattern) {
 `
 }
 
-
 var savedPatterns = {
     patterns: [],
 
@@ -92,6 +91,18 @@ function savedPatternsProgram() {
                 currentPattern.currentTick = $(this).val();
                 currentPattern.playing = false;
                 setTimeout(() => currentPattern.play(), getTickSpeed());
+            });
+
+            $(".pattern-select-button").click(function() {
+                $(".pattern-select-button").css('background-color', '');
+                if (_.isEqual(selectedPattern, getPatternOfElement(this))) {
+                    selectedPattern = undefined;
+                    $("#current-selected-track").text(`Currently Selected: N/A`);
+                } else {
+                    selectedPattern = getPatternOfElement(this);
+                    $("#current-selected-track").text(`Currently Selected: ${selectedPattern.name}`);
+                    $(this).css('background-color', 'green');
+                }
             });
         }
 

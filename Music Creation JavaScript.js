@@ -1,6 +1,6 @@
 var bpm = 128;
 var timeSignature = "4x4";
-var selectedPattern = new Pattern([]);
+var selectedPattern = undefined;
 var currentTime = 0; //in Milliseconds
 
 function changeCurrentTimeToText() {

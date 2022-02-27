@@ -4,6 +4,7 @@ html, body {
     margin: 0; 
     background-color: black;
     display: inline-block;
+    overflow-x: hidden;
 }
 
 * {
@@ -29,6 +30,7 @@ input {
     min-height: 100px;
     background-color: #888888;
     display: block;
+    z-index: 1;
 }
 
 #toolBar>* {
@@ -76,41 +78,6 @@ input {
 
 @keyframes menuButtonAnimation {
     50% { background-color: #444444; }
-}
-
-#playlist {
-    width: 100vw;
-    min-height: 80vh;
-    background: linear-gradient(to bottom, black, #222222);
-    margin-top: 10px;
-}
-
-#playlist-table {
-    width: 100%;
-    background-color: white;
-}
-
-#playlist-table tr {
-    height: max(100px, 10vh);
-    width: 100vw;
-    background-color: #AAAAAA;
-    border: 1px solid black;
-}
-
-#playlist-table tr td {
-    height: max(100px, 10vh);
-    min-height: max(100px, 10vh);
-    min-width: 100px;
-    border: 1px solid white;
-    border-radius: 5px;
-}
-
-/* #playListTable tr td.dark {
-    background-color: #222222;
-} */
-
-#playlist-table tr td:hover {
-    background-color: black;
 }
 
 .window {
