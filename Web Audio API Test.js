@@ -1,4 +1,5 @@
 var audioContext = new AudioContext();
+var scheduledBuffers = [];
 
 window.createBuffer = function(path) {
   let source = audioContext.createBufferSource();
@@ -21,9 +22,21 @@ window.createBuffer = function(path) {
 window.playSound = function(buffer, time) {
   if (time) {
     buffer.start(time);
+    scheduledBuffers.push(buffer);
+    let timeToPlay = time - audioContext.currentTime;
+    setTimeout(() => {
+      scheduledBuffers = scheduledBuffers.filter(currentBuffer => {return currentBuffer != buffer});
+    } ,time * 1000)
   } else {
     buffer.start(0);
   }
+}
+
+window.stopPlayback = function() {
+  scheduledBuffers.forEach(buffer => {
+    buffer.stop();
+  });
+  scheduledBuffers = [];
 }
 
 // class BufferSound {

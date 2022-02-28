@@ -126,6 +126,7 @@ function savedPatternsProgram() {
                 timeSlider.val(pattern.currentTick);
                 timeText.text(`Tick ${pattern.currentTick} / ${maxTick}`);
                 let currentNotes = [...pattern.currentlyPlaying];
+                console.log(currentNotes);
                 $(visualizingRow).children().removeClass("visualizing");
                 
                 for (let i = 0; i < currentNotes.length; i++) {

@@ -92,7 +92,28 @@ class Sound {
         note.play(startTime + (note.tick * tickTime / 1000));
       });
 
-      setTimeout(() => { pattern.playing = false; pattern.currentTick = 1; }, queue[queue.length - 1].tick * tickTime);
+      let updateCurrentlyPlaying = function() {
+        let startTime = Date.now();
+        let desiredTime = 0;
+
+        function update() {
+          if (pattern.playing) {
+            pattern.currentTick++;
+            pattern.currentlyPlaying = queue.filter(note => note.tick == pattern.currentTick);
+            let diff = (Date.now() - startTime) - desiredTime;
+            console.log(diff);
+            desiredTime += tickTime;
+            setTimeout(() => update(), tickTime - diff);
+          }
+        };
+        update();
+
+      }();
+
+      setTimeout(() => {
+          pattern.playing = false;
+          pattern.currentTick = 1;
+      }, queue[queue.length - 1].tick * tickTime);
     }
 
     // play() {
