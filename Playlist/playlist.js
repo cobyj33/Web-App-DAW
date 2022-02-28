@@ -165,7 +165,10 @@ window.addEventListener("load", e => {
                 playlist.addPattern(selectedPattern, $(this).index() + 1);
 
                 for (let i = 0; i < width; i++) {
-                    $(this).parent().find(`td:nth-of-type(${col + 1 + i})`).css('background-color', 'green');
+                    $(this).parent().find(`td:nth-of-type(${col + 1 + i})`).css({
+                        'background-color': 'green',
+                        "cursor": "grab"
+                    });
                 }
 
             }

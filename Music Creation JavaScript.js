@@ -25,7 +25,7 @@ function getBeatSpeed() {
 }
 
 function getTickSpeed() {
-    return getBeatSpeed() / 4;
+  return getBeatSpeed() / 4;
 }
 
 
@@ -131,12 +131,12 @@ $(document).ready(function() {
     $(this).css("z-index", "1000");
   });
 
-  let zIndex = 0;
+  let zIndex = 10;
 
   $(".window").on('mouseleave', function() {
     $(this).css("z-index", String(zIndex++));
     if (zIndex > 1000) {
-      zIndex = 0;
+      zIndex = 10;
       $(".window").css("z-index", "0");
       $(this).css("z-index", String(zIndex++));
     }

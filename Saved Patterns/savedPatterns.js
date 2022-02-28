@@ -107,7 +107,6 @@ function savedPatternsProgram() {
         }
 
         function playPattern(pattern, patternInstance) {
-            console.log(JSON.stringify(pattern.notes));
             if (pattern.playing) {
                 console.log("Cannot play pattern: Already playing");
                 return;
@@ -115,21 +114,24 @@ function savedPatternsProgram() {
             pattern.play();
 
             let currentVisualizer = $(patternInstance).find(".pattern-visualizer")[0];
+            let visualizingRow = $(currentVisualizer).find('tr:nth-of-type(1)');
+            let timeSlider = $(patternInstance).find(".pattern-time-manager input");
+            let timeText = $(patternInstance).find(".pattern-time-manager p");
             let startTime = Date.now();
             let desiredTime = 0;
             let tickTime = getTickSpeed();
+            let maxTick = $(patternInstance).find(".pattern-time-manager input").attr('max');
             visualize();
             function visualize() {
-                $(patternInstance).find(".pattern-time-manager input").val(pattern.currentTick);
-                $(patternInstance).find(".pattern-time-manager p")
-                    .text(`Tick ${pattern.currentTick} / ${$(patternInstance).find(".pattern-time-manager input").attr('max')}`);
+                timeSlider.val(pattern.currentTick);
+                timeText.text(`Tick ${pattern.currentTick} / ${maxTick}`);
                 let currentNotes = [...pattern.currentlyPlaying];
-                $(currentVisualizer).find("tr td").css("background-color", "");
+                $(visualizingRow).children().removeClass("visualizing");
                 
                 for (let i = 0; i < currentNotes.length; i++) {
                     let soundName = currentNotes[i].sound.name;
                     let columnIndex = $(currentVisualizer).find(`.sound-${soundName}`).index();
-                    $(currentVisualizer).find(`tr:nth-of-type(1) td:nth-of-type(${columnIndex + 1})`).css("background-color", "white");
+                    $(visualizingRow).find(`td:nth-of-type(${columnIndex + 1})`).addClass("visualizing");
                 }  
 
                 if (pattern.playing) {
@@ -137,7 +139,7 @@ function savedPatternsProgram() {
                     desiredTime += tickTime;
                     window.setTimeout( () => visualize(), (tickTime - diff));
                 } else {
-                    $(currentVisualizer).find("tr td").css("background-color", "");
+                    $(visualizingRow).children().removeClass("visualizing");
                 }
             }
         }
@@ -209,19 +211,12 @@ function makePatternFromJSONObject(jsonObject) {
 
 $(window).on('load', function() {
     $("#saved-patterns-window").hide();
-    fetch("basicPatterns.json")
+    fetch("../basicPatterns.json")
         .then(file => {return file.json()})
         .then(patterns => patterns.forEach( function(pattern) {
             let conversion = makePatternFromJSONObject(pattern);
             savedPatterns.addPattern(conversion);
         }))
-        .then(() => {
-            
-            if (savedPatterns.patterns.length > 0) {
-                selectedPattern = savedPatterns.patterns[0];
-            }
-
-        })
         .then(() => savedPatternsProgram())
         .catch(error => {
             console.log('could not load default patterns');

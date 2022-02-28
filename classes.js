@@ -11,10 +11,15 @@ class Sound {
       this.tick = tick;
     }
   
-    play() {
+    play(time) {
       if (this.sound.source == "")
           return;
-      new Audio(this.sound.source).play();
+      let buffer = window.createBuffer(this.sound.source, this.sound.name);
+      if (time) {
+        window.playSound(buffer, time);
+      } else {
+        window.playSound(buffer);
+      }
     }
   }
   
@@ -80,8 +85,106 @@ class Sound {
       let tickTime = getTickSpeed();
       let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
       queue = queue.filter( note => note.tick >= this.currentTick);
+      let pattern = this;
+      let startTime = audioContext.currentTime;
+
+      queue.forEach(note => {
+        note.play(startTime + (note.tick * tickTime / 1000));
+      });
+
+      setTimeout(() => { pattern.playing = false; pattern.currentTick = 1; }, queue[queue.length - 1].tick * tickTime);
+    }
+
+    // play() {
+    //   this.playing = true;
+    //   let tickTime = getTickSpeed();
+    //   let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
+    //   queue = queue.filter( note => note.tick >= this.currentTick);
+    //   let pattern = this;
+    //   let startTime = Date.now();
+
+    //   queue.forEach(note => {
+    //     setTimeout(() => {
+    //       note.play();
+    //       let diff = (Date.now() - startTime) - (note.tick * tickTime);
+    //       console.log(`inaccuracy: ${diff}`);
+    //     }, note.tick * tickTime);
+    //   });
+
+    //   setTimeout(() => { pattern.playing = false; pattern.currentTick = 1; }, queue[queue.length - 1].tick * tickTime);
+    // }
+  
+  }
+
+
+
+
+/*
+  class Pattern {
+    constructor(notes) {
+      this.notes = [...notes];
+      this.currentlyPlaying = [];
+      this.startingBeat = 0;
+      this.currentTick = 1;
+      this.name = "";
+      this.playing = false;
+      //cannot be looped
+    }
+  
+    get patternLength() {
+      let max = 0;
+      for (let i = 0; i < this.notes.length; i++) {
+        if (this.notes[i].tick > max)
+          max = this.notes[i].tick;
+      }
+  
+      if (max % 4 != 0) {
+        max += 4 - (max % 4);
+      }
+      return max;
+    }
+  
+    get sounds() {
+      let noteSounds = [];
+      for (let i = 0; i < this.notes.length; i++) {
+        let currentSound = this.notes[i].sound;
+        let contains = false;
+        for (let j = 0; j < noteSounds.length; j++) {
+          if (_.isEqual(noteSounds[j], currentSound)) {
+            contains = true;
+            break;
+          }
+        }
+  
+        if (!contains) {
+          noteSounds.push(currentSound);
+        }
+      }
+      return noteSounds;
+    }
+  
+    clone() {
+      return new Pattern(this.notes);
+    }
+  
+    playFromStart() {
+      this.currentTick = 1;
+      this.play();
+    }
+  
+    pause() {
+      this.playing = false;
+      this.currentlyPlaying = [];
+    }
+  
+    play() {
+      this.playing = true;
+      let tickTime = getTickSpeed();
+      let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
+      queue = queue.filter( note => note.tick >= this.currentTick);
       let patternLength = this.patternLength;
       let pattern = this;
+      let queueLocation = 0;
 
       let startTime = Date.now();
       let desiredTime = 0;
@@ -95,18 +198,18 @@ class Sound {
           pattern.playing = false;
           pattern.currentTick = 1;
           return;
-        } else if (queue.length < 1) {
+        } else if (queueLocation >= queue.length) {
           pattern.currentTick++;
           window.setTimeout( () => playbackLoop(), tickTime);
           return;
         }
           
         
-        while (queue[0].tick == pattern.currentTick) {
-          pattern.currentlyPlaying.push(queue[0]);
-          queue[0].play();
-          queue.shift();
-          if (queue.length == 0) {
+        while (queue[queueLocation].tick == pattern.currentTick) {
+          pattern.currentlyPlaying.push(queue[queueLocation]);
+          queue[queueLocation].play();
+          queueLocation++;
+          if (queueLocation >= queue.length) {
             break;
           }
         }
@@ -121,3 +224,4 @@ class Sound {
     }
   
   }
+  */

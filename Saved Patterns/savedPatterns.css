@@ -1,8 +1,8 @@
 #saved-patterns-window {
-    height: 80vh;
-    width: 40vw;
-    min-width: 40vw;
-    min-height: 40vh;
+    height: max(40vh, 40vw);
+    width: max(40vh, 40vw);
+    min-width: 300px;
+    min-height: 300px;
     background-color: darkgray;
     position: fixed;
     top: 10vh;
@@ -202,6 +202,10 @@
 
 .pattern-time-manager * {
     margin: 0;
+}
+
+.visualizing {
+    background-color: white !important;
 }
 
 

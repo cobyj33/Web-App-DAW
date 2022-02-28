@@ -83,6 +83,7 @@ input {
 .window {
     background-color: #AAAAAA;
     border: 2px solid black;
+    z-index: 10;
 }
 
 #windowSelection {
