@@ -21,6 +21,10 @@ class Sound {
         window.playSound(buffer);
       }
     }
+
+    clone() {
+      return new Note(this.sound, this.tick);
+    }
   }
   
   class Pattern {
@@ -67,7 +71,9 @@ class Sound {
     }
   
     clone() {
-      return new Pattern(this.notes);
+      let clonedNotes = [];
+      this.notes.forEach(note => clonedNotes.push(note.clone()));
+      return new Pattern(clonedNotes);
     }
   
     playFromStart() {

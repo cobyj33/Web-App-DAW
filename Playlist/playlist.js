@@ -1,74 +1,216 @@
-let selectedAreas = [];
-let selectedArea = undefined;
-
 function secondsToTicks(seconds) {
     return Math.round((seconds * 1000) / getTickSpeed());
 } 
-
-function getAreaSelectedAt(row, col) {
-    for (let i = 0; i < selectedAreas.length; i++) {
-        if (selectedAreas[i].contains(row, col)) {
-            return selectedAreas[i];
-        }
+class PlaylistTrack {
+    constructor(row, col, width, pattern) {
+        this.row = row;
+        this.col = col;
+        this.width = width;
+        this.pattern = pattern.clone();
+        this.moving = false;
+        console.log(this.pattern);
+        this.canvas = document.createElement('canvas');
+        this.render();
     }
-    console.log("[FATAL] NO AREA SELECTED AT " + row + " " + col);
-    return undefined; 
-}
 
-function createArea(row, col, width) {
-    return {
-        row: row,
-        col: col,
-        width: width,
+    get rightSide() {
+        return this.col + this.width;
+    }
 
-        get rightSide() {
-            return col + width;
-        },
+    get startingTick() {
+        return this.col + 1;
+    }
 
-        overlaps: function(area) {
-            if (area.row != this.row) {
+    overlaps({row, col, width}) {
+        if (row != this.row) {
+            return false;
+        }
+
+        if (col + width > this.col && col < this.col) {
+            return true;
+        } else if (col < this.col + this.width && col > this.col) {
+            return true;
+        }
+        return false;
+    }
+
+    contains(row, col) {
+        if (this.row == row && (this.col <= col && this.col + this.width >= col)) {
+            return true;
+        }
+        return false;
+    }
+
+    render() {
+        let current = this;
+        this.canvas.width = this.width * $("#playlist-table tr td").width();
+        if (this.canvas.height / $("#playlist-table tr td").height() < 0.9) {
+            this.canvas.height = $("#playlist-table tr td").height();
+        }
+        
+
+        function isRenderedCorrectly() {
+            if (typeof $(current.canvas).parent[0] == 'undefined') {
+                return false;
+            }
+            let tableColumn = $(current.canvas).parent();
+
+            if (current.col + current.width > playlist.cols) {
                 return false;
             }
 
-            if (area.col + area.width > this.col && area.col < this.col) {
-                return true;
-            } else if (area.col < this.col + this.width && area.col > this.col) {
-                return true;
+            for (let i = 0; i < current.width; i++) {
+                if (!$(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1 + i}`).hasClass("selected")) {
+                    return false;
+                }
             }
-            return false;
-        },
 
-        contains: function(row, col) {
-            if (this.row == row && (this.col <= col && this.col + this.width >= col)) {
+            if (tableColumn.index() == col && tableColumn.parent.index() == row) {
                 return true;
             }
             return false;
         }
-    };
+
+        function placeCanvas() {
+            $(current.canvas).css("position", "static");
+            let properPosition = $(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1}`);
+            properPosition.css({
+                'max-width': properPosition.width(),
+                'z-index': '1'
+            });
+            properPosition.append(current.canvas);
+
+            if (current.col + current.width > playlist.cols) {
+                playlist.extend(current.width);
+            }
+
+            for (let i = 0; i < current.width; i++) {
+                $(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1 + i}`).addClass("selected");
+            }
+        }
+
+        if (!isRenderedCorrectly()) {       
+            placeCanvas();
+        }
+
+        this.drawCanvas();
+    }
+
+    drawCanvas() {
+        let context = this.canvas.getContext("2d");
+        let offset = $(this.canvas).offset();
+        context.clearRect(-offset.left, -offset.top, window.innerWidth, window.innerHeight);
+        context.strokeStyle = "white";
+        context.fillStyle = "white";
+
+        let patternSounds = this.pattern.sounds;
+        let gap = 10;
+        let tickHeight = this.canvas.height / patternSounds.length;
+        let tickLength = this.canvas.width / this.pattern.patternLength;
+        let drawnNotes = this.pattern.notes;
+
+        function getSoundPosition(note) {
+            for (let i = 0; i < patternSounds.length; i++) {
+                if (_.isEqual(note.sound, patternSounds[i])) {
+                    return i;
+                }
+            }
+        }
+
+        for (let i = 0; i < drawnNotes.length; i++) {
+            let currentNote = drawnNotes[i];
+            context.fillRect((currentNote.tick - 1) * tickLength + gap, getSoundPosition(currentNote) * tickHeight + gap, tickLength - gap, tickHeight - gap);
+        }
+
+        context.rect(0, 0, this.canvas.width, this.canvas.height);
+        context.stroke();
+    }
+
+    move() {
+        if (this.moving) {
+            console.log("[PlaylistTrack] cannot move because track is already moving");
+            return;
+        } else if (!($(this.canvas).is(":visible"))) {
+            console.log("[PlaylistTrack] cannot move because track is not rendered");
+            return;
+        }
+
+        for (let i = 0; i <  this.width; i++) {
+            $(`#playlist-table tr:nth-of-type(${this.row + 1}) td:nth-of-type(${this.col + 1 + i}`).removeClass("selected");
+        }
+
+        $(this.canvas).css("position", "fixed");
+        window.addEventListener('mouseup', () => this.moving = false);
+        let current = this;
+        this.moving = true;
+        let mouseX = 0;
+        let mouseY = 0;
+        let lastVisitedCol = $(this.canvas).parent()[0];
+
+        $('#playlist-table tr td').mouseenter(function() {
+            lastVisitedCol = this;
+        });
+
+        function updateMouse(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        }
+
+        window.addEventListener('mousemove', updateMouse);
+        function movementLoop() {
+            if (current.moving) {
+                let offset = $(current.canvas).offset();
+                let movementX = mouseX - offset.left + 10;
+                let movementY = mouseY - offset.top + 10;
+                $(current.canvas).css({
+                    "left": $(current.canvas).offset().left + movementX + "px",
+                    "top": $(current.canvas).offset().top + movementY + "px",
+                });
+                current.drawCanvas();
+                setTimeout(() => movementLoop(), 10);
+            } else {
+                window.removeEventListener('mousemove', updateMouse);
+                $(current.canvas).remove();
+                current.row = $(lastVisitedCol).parent().index();
+                current.col = $(lastVisitedCol).index();
+                current.moving = false;
+                current.render();
+            }
+        }
+        movementLoop();
+    }
+
+    erase() {
+        $(this.canvas).remove();
+    }
 }
 
 playlist = {
         rows: 10,
         cols: 40,
         zoom: 100,
-        patterns: [],
+        placedTracks: [],
         currentlyPlaying: [],
+        selectedTrack: undefined,
         currentTick: 1,
         playing: false,
         looped: false,
         metronomePlaying: false,
         timerLine: {
-            tick: 1,
 
             render: function() {
+                console.log(playlist.currentTick);
                 $("#timer-line").css('transition', `left ${getTickSpeed() / 1000}s`);
-                $("#timer-line").css('left', (this.tick - 1) * $("#playlist-table tr td").width() + "px");
+                $("#timer-line").css('left', (playlist.currentTick - 1) * $("#playlist-table tr td").width() + "px");
             },
 
             setPlaylistTime: function() {
                 let leftOffset = $("#timer-line").position().left;
-                this.tick = Math.round(leftOffset / $("#playlist-table tr td").width());
-                playlist.currentTick = this.tick;
+                let tick = Math.round(leftOffset / $("#playlist-table tr td").width());
+
+                if (tick > 0 && tick < playlist.length) {
+                    playlist.currentTick = tick;
+                }
                 playlist.timeDisplay.update();
             },
 
@@ -87,6 +229,22 @@ playlist = {
             return (this.currentTick * getTickSpeed()) / 1000;
         },
 
+        get patterns() {
+            let patterns = [];
+            this.placedTracks.forEach(track => patterns.push(track.pattern));
+            return patterns;
+        },
+
+        get notes() {
+            let notes = []
+            this.placedTracks.forEach(track => {
+                track.pattern.notes.forEach(note => {
+                    notes.push(new Note(note.sound, note.tick + track.startingTick));
+                });
+            });
+            return notes;
+        },
+
         get length() {
             let patternLengths = [];
             this.patterns.forEach(pattern => patternLengths.push(pattern.patternLength));
@@ -99,19 +257,25 @@ playlist = {
             this.timerLine.render();
         },
 
-        addPattern: function(pattern, startingTick) {
-            let patternNotes = [...pattern.notes];
-            patternNotes = patternNotes.map(note => { return new Note(note.sound, note.tick + startingTick)});
-            console.log(patternNotes);
-            this.patterns.push(new Pattern(patternNotes));
+        render: function() {
+            this.placedTracks.forEach(track => track.render());
+            this.timerLine.render();
         },
 
-        removePattern: function(input) {
+        addTrack: function(track) {
+            this.placedTracks.push(track);
+            if (track.rightSide > this.cols) {
+                this.extend(track.width);
+            }
+        },
+
+        removeTrack: function(input) {
             if (typeof input == 'number') {
-                this.patterns.splice(input, 1);
+                this.placedTracks.splice(input, 1);
             } else {
-                for (let i = 0; i < this.patterns.length; i++) {
-                    if (_.isEqual(this.patterns[i], input)) {
+                for (let i = 0; i < this.placedTracks.length; i++) {
+                    if (_.isEqual(this.placedTracks[i], input)) {
+                        this.placedTracks[i].erase();
                         this.patterns.splice(i, 1);
                         break;
                     }
@@ -120,12 +284,22 @@ playlist = {
         },
 
         isAreaSelected: function(area) {
-            for (let i = 0; i < selectedAreas.length; i++) {
-                if (area.overlaps(selectedAreas[i])) {
+            for (let i = 0; i < this.placedTracks.length; i++) {
+                if (this.placedTracks[i].overlaps(area)) {
                     return true;
                 }
             }
             return false;
+        },
+
+        getTrackSelectedAt: function(row, col) {
+            for (let i = 0; i < this.placedTracks.length; i++) {
+                if (this.placedTracks[i].contains(row, col)) {
+                    return this.placedTracks[i];
+                }
+            }
+            console.log("[FATAL] NO AREA SELECTED AT " + row + " " + col);
+            return undefined; 
         },
 
         play: function() {
@@ -133,6 +307,7 @@ playlist = {
                 return;
             }
             this.playing = true;
+            this.render();
             
             let queue = this.createQueue();
             console.log(queue);
@@ -156,8 +331,8 @@ playlist = {
 
                 function moveLine() {
                     if (playlist.playing) {
+                        console.log(scheduledBuffers);
                         playlist.currentTick++;
-                        playlist.timerLine.tick = playlist.currentTick;
                         playlist.timerLine.render();
                         playlist.timeDisplay.update();
                         let diff = (Date.now() - startTime) - desiredTime;
@@ -175,8 +350,7 @@ playlist = {
         },
 
         createQueue: function() {
-            let queue = [];
-            this.patterns.forEach(pattern => queue.push(...pattern.notes));
+            let queue = this.notes;
             queue.sort((a, b) => a.tick - b.tick);
             queue = queue.filter(note => note.tick >= this.currentTick);
             return queue;
@@ -197,6 +371,14 @@ playlist = {
                 $("#playlist-table tr").append(currentCol.cloneNode(true));
                 this.cols++;
             }
+        },
+
+        zoom: function(amount) {
+
+        },
+
+        zoomTo: function(amount) {
+
         }
     }
 
@@ -223,8 +405,6 @@ window.addEventListener("load", e => {
         }
     }
 
-    let movingArea = false;
-    window.addEventListener('mouseup', () => movingArea = false);
     function playlistEvents() {
         $('#playlist-table *').off();
         $('#timer-line').off();
@@ -241,23 +421,15 @@ window.addEventListener("load", e => {
             let col = $(this).index();
             let width = selectedPattern.patternLength;
 
-            let newArea = createArea(row, col, width);
-            if (!playlist.isAreaSelected(newArea)) {
-                selectedAreas.push(newArea);
-                selectedArea = newArea;
-                playlist.addPattern(selectedPattern, $(this).index() + 1);
-
-                if (newArea.rightSide > playlist.cols) {
-                    playlist.extend(newArea.width);
-                }
-
-                let canvas = createCanvas(selectedPattern);
-                $(this).css("max-width", $(this).width() + "px");
-                $(this).css("z-index", "1");
-                $(this).append(canvas);
-
-                for (let i = 0; i < width; i++) {
-                    $(`#playlist-table tr:nth-of-type(${row + 1}) td:nth-of-type(${col + 1 + i}`).addClass("selected");
+            if ($(this).hasClass("selected")) {
+                playlist.selectedTrack = playlist.getTrackSelectedAt(row, col);
+                playlist.selectedTrack.move();
+            } else {
+                if (!playlist.isAreaSelected({row: row, col: col, width: width})) {
+                    let newTrack = new PlaylistTrack(row, col, width, selectedPattern);
+                    playlist.addTrack(newTrack);
+                    playlist.selectedTrack = newTrack;
+                    playlist.render();
                 }
             }
         });
@@ -269,6 +441,16 @@ window.addEventListener("load", e => {
             } else {
                 switchIndicatorOn(this);
                 playlist.play();
+            }
+        });
+
+        $("#playlist-stop-button").click( function() {
+            if (playlist.playing) {
+                switchIndicatorOn(this);
+                playlist.stop();
+                playlist.currentTick = 1;
+                playlist.render();
+                setTimeout(() => switchIndicatorOff(this), 500);
             }
         });
 
@@ -328,44 +510,8 @@ window.addEventListener("load", e => {
                 }
             });
         }();
-    }
 
-    function createCanvas(pattern) {
-        let canvas = document.createElement("canvas");
-        // let canvas = document.getElementById("canvas");
-        canvas.style.backgroundColor = "gray";
-        canvas.width = selectedArea.width * $("#playlist-table tr td").width();
-        canvas.height = $("#playlist-table tr td").height();
-        let context = canvas.getContext("2d");
-        context.strokeStyle = "white";
-        context.fillStyle = "white";
 
-        function drawCanvas() {
-            let patternSounds = pattern.sounds;
-            let gap = 10;
-            let tickHeight = canvas.height / patternSounds.length;
-            let tickLength = canvas.width / pattern.patternLength;
-            let drawnNotes = pattern.notes;
-
-            function getSoundPosition(note) {
-                for (let i = 0; i < patternSounds.length; i++) {
-                    if (_.isEqual(note.sound, patternSounds[i])) {
-                        return i;
-                    }
-                }
-            }
-
-            for (let i = 0; i < drawnNotes.length; i++) {
-                let currentNote = drawnNotes[i];
-                context.fillRect((currentNote.tick - 1) * tickLength + gap, getSoundPosition(currentNote) * tickHeight + gap, tickLength - gap, tickHeight - gap);
-            }
-
-            context.rect(0, 0, canvas.width, canvas.height);
-            context.stroke();
-        }
-
-        drawCanvas();
-        return canvas;
     }
     
 
