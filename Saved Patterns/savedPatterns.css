@@ -208,6 +208,25 @@
     background-color: white !important;
 }
 
+#saved-patterns-search-area {
+    display: grid;
+    height: 100%;
+    grid-template-columns: repeat(5, 20%);
+    grid-template-rows: 100%;
+    background-color: black;
+}
+
+#saved-patterns-search-area h2 {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    justify-self: center;
+    align-self: center;
+}
+
+#saved-patterns-search-bar {
+    grid-row: 1 / 2;
+    grid-column: 3 / 6;
+}
 
 /* .pattern-interact button {
     background-color: #222222;

@@ -242,8 +242,7 @@ function program() {
       }
 
       mainArea.append(table);
-      applyDefaultCSS();
-      function applyDefaultCSS() {
+      let applyDefaultCSS = function() {
 
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
         $("#channelRack .main table tr td:nth-of-type(16n + 1)").css("border-right", "6px solid black");
@@ -267,9 +266,8 @@ function program() {
         $("#channel-rack-autoscroller-left").css("left", autoScrollerLeftOffset + "px");
 
         
-      }
+      }();
       
-
     }
 
     let mouseIsDown = false;
@@ -280,21 +278,28 @@ function program() {
     function channelRackEvents() {
 
         $("#channelRack .main *").off();
-        $("#channelRack .main table tr td:nth-of-type(0)").mousedown(function() {
-          const tableName = $(this);
-          $(this).innerHTML = '';
-          $(this).innerHTML = '<input type="text" placeholder="ins Name">';
+        $("#channelRack .main table tr td:nth-of-type(1)").mousedown(function() {
+          if ($(this).find("input").length > 0) {
+            return;
+          }
+
+          let tableColumn = this;
+          let rowIndex = $(this).parent().index();
+
+          let inputElement = document.createElement('input');
+          inputElement.setAttribute("type", "text");
+          inputElement.classList.add("user-input");
+          inputElement.style.width = "100px";
+          $(this).children().remove();
+          $(this).append(inputElement);
+          // this.innerHTML = '<input type="text" class="user-input">';
           $(this).find("input").change(function() {
-
-          })
-
-          $(this).find("input").onkeydown(function(e) {
-            let key = e.key;
-            if (key == "Enter") {
-              tableName.innerHTML = '';
-              getSoundFromRow($(tableName).parent().index()) = $(this).value;
-              tableName.innerHTML = $(this).value;
-            }
+            channelRack.sounds[rowIndex].name = $(this).val();
+            $(this).remove();
+            const instrumentName = document.createElement("h2");
+            instrumentName.innerText = channelRack.sounds[rowIndex].name;
+            instrumentName.classList.add("instrumentName");
+            $(tableColumn).append(instrumentName);
           });
       });
 
@@ -470,8 +475,9 @@ function program() {
       });
 
       $('#channelRack-saveButton').click(function() {
-        console.log(channelRack.getPattern());
-        savedPatterns.addPattern(channelRack.getPattern());
+        if (channelRack.getPattern()) {
+          savedPatterns.addPattern(channelRack.getPattern());
+        }
       });
 
       $("#channelRack .bottomBar .addSoundButton").click(() => appendSound());

@@ -25,7 +25,6 @@ window.playSound = function(buffer, time) {
     scheduledBuffers.push(buffer);
     let timeToPlay = time - audioContext.currentTime;
     setTimeout(() => {
-      console.log("attempting to remove " + buffer);
       scheduledBuffers = scheduledBuffers.filter(currentBuffer => {return currentBuffer != buffer});
     } ,timeToPlay * 1000);
   } else {

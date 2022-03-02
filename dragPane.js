@@ -38,6 +38,11 @@ function run() {
     }
 
     $(".dragPane .dragSelector").mousedown(function(e) {
+      if ($(e.target).is('input, button')) {
+        return;
+      }
+
+
       window.addEventListener('mousemove', updateMouse);
       updateMouse(e);
       isMouseDown = true;

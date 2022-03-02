@@ -1,189 +1,6 @@
 function secondsToTicks(seconds) {
     return Math.round((seconds * 1000) / getTickSpeed());
 } 
-class PlaylistTrack {
-    constructor(row, col, width, pattern) {
-        this.row = row;
-        this.col = col;
-        this.width = width;
-        this.pattern = pattern.clone();
-        this.moving = false;
-        console.log(this.pattern);
-        this.canvas = document.createElement('canvas');
-        this.render();
-    }
-
-    get rightSide() {
-        return this.col + this.width;
-    }
-
-    get startingTick() {
-        return this.col + 1;
-    }
-
-    overlaps({row, col, width}) {
-        if (row != this.row) {
-            return false;
-        }
-
-        if (col + width > this.col && col < this.col) {
-            return true;
-        } else if (col < this.col + this.width && col > this.col) {
-            return true;
-        }
-        return false;
-    }
-
-    contains(row, col) {
-        if (this.row == row && (this.col <= col && this.col + this.width >= col)) {
-            return true;
-        }
-        return false;
-    }
-
-    render() {
-        let current = this;
-        this.canvas.width = this.width * $("#playlist-table tr td").width();
-        if (this.canvas.height / $("#playlist-table tr td").height() < 0.9) {
-            this.canvas.height = $("#playlist-table tr td").height();
-        }
-        
-
-        function isRenderedCorrectly() {
-            if (typeof $(current.canvas).parent[0] == 'undefined') {
-                return false;
-            }
-            let tableColumn = $(current.canvas).parent();
-
-            if (current.col + current.width > playlist.cols) {
-                return false;
-            }
-
-            for (let i = 0; i < current.width; i++) {
-                if (!$(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1 + i}`).hasClass("selected")) {
-                    return false;
-                }
-            }
-
-            if (tableColumn.index() == col && tableColumn.parent.index() == row) {
-                return true;
-            }
-            return false;
-        }
-
-        function placeCanvas() {
-            $(current.canvas).css("position", "static");
-            let properPosition = $(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1}`);
-            properPosition.css({
-                'max-width': properPosition.width(),
-                'z-index': '1'
-            });
-            properPosition.append(current.canvas);
-
-            if (current.col + current.width > playlist.cols) {
-                playlist.extend(current.width);
-            }
-
-            for (let i = 0; i < current.width; i++) {
-                $(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1 + i}`).addClass("selected");
-            }
-        }
-
-        if (!isRenderedCorrectly()) {       
-            placeCanvas();
-        }
-
-        this.drawCanvas();
-    }
-
-    drawCanvas() {
-        let context = this.canvas.getContext("2d");
-        let offset = $(this.canvas).offset();
-        context.clearRect(-offset.left, -offset.top, window.innerWidth, window.innerHeight);
-        context.strokeStyle = "white";
-        context.fillStyle = "white";
-
-        let patternSounds = this.pattern.sounds;
-        let gap = 10;
-        let tickHeight = this.canvas.height / patternSounds.length;
-        let tickLength = this.canvas.width / this.pattern.patternLength;
-        let drawnNotes = this.pattern.notes;
-
-        function getSoundPosition(note) {
-            for (let i = 0; i < patternSounds.length; i++) {
-                if (_.isEqual(note.sound, patternSounds[i])) {
-                    return i;
-                }
-            }
-        }
-
-        for (let i = 0; i < drawnNotes.length; i++) {
-            let currentNote = drawnNotes[i];
-            context.fillRect((currentNote.tick - 1) * tickLength + gap, getSoundPosition(currentNote) * tickHeight + gap, tickLength - gap, tickHeight - gap);
-        }
-
-        context.rect(0, 0, this.canvas.width, this.canvas.height);
-        context.stroke();
-    }
-
-    move() {
-        if (this.moving) {
-            console.log("[PlaylistTrack] cannot move because track is already moving");
-            return;
-        } else if (!($(this.canvas).is(":visible"))) {
-            console.log("[PlaylistTrack] cannot move because track is not rendered");
-            return;
-        }
-
-        for (let i = 0; i <  this.width; i++) {
-            $(`#playlist-table tr:nth-of-type(${this.row + 1}) td:nth-of-type(${this.col + 1 + i}`).removeClass("selected");
-        }
-
-        $(this.canvas).css("position", "fixed");
-        window.addEventListener('mouseup', () => this.moving = false);
-        let current = this;
-        this.moving = true;
-        let mouseX = 0;
-        let mouseY = 0;
-        let lastVisitedCol = $(this.canvas).parent()[0];
-
-        $('#playlist-table tr td').mouseenter(function() {
-            lastVisitedCol = this;
-        });
-
-        function updateMouse(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        }
-
-        window.addEventListener('mousemove', updateMouse);
-        function movementLoop() {
-            if (current.moving) {
-                let offset = $(current.canvas).offset();
-                let movementX = mouseX - offset.left + 10;
-                let movementY = mouseY - offset.top + 10;
-                $(current.canvas).css({
-                    "left": $(current.canvas).offset().left + movementX + "px",
-                    "top": $(current.canvas).offset().top + movementY + "px",
-                });
-                current.drawCanvas();
-                setTimeout(() => movementLoop(), 10);
-            } else {
-                window.removeEventListener('mousemove', updateMouse);
-                $(current.canvas).remove();
-                current.row = $(lastVisitedCol).parent().index();
-                current.col = $(lastVisitedCol).index();
-                current.moving = false;
-                current.render();
-            }
-        }
-        movementLoop();
-    }
-
-    erase() {
-        $(this.canvas).remove();
-    }
-}
 
 playlist = {
         rows: 10,
@@ -208,10 +25,14 @@ playlist = {
                 let leftOffset = $("#timer-line").position().left;
                 let tick = Math.round(leftOffset / $("#playlist-table tr td").width());
 
-                if (tick > 0 && tick < playlist.length) {
-                    playlist.currentTick = tick;
+                if (tick <= 0 || playlist.placedTracks.length == 0) {
+                    tick = 1;
+                } else if (tick > playlist.length) {
+                    tick = playlist.length; 
                 }
-                playlist.timeDisplay.update();
+
+                playlist.currentTick = tick;
+                playlist.render();
             },
 
             move: function() {
@@ -246,20 +67,31 @@ playlist = {
         },
 
         get length() {
-            let patternLengths = [];
-            this.patterns.forEach(pattern => patternLengths.push(pattern.patternLength));
-            return Math.max(...patternLengths);
+            return Math.max(...(this.notes.map(note => note.tick)));
         },
 
         set time(time) {
-            this.currentTick = secondsToTicks(time);
+            this.currentTick = secondsToTicks(time) + 1;
             this.timerLine.tick = this.currentTick;
             this.timerLine.render();
+            this.timeDisplay.update();
         },
 
         render: function() {
             this.placedTracks.forEach(track => track.render());
             this.timerLine.render();
+            this.timeDisplay.update();
+            if (this.playing) {
+                $("#playlist-play-button").addClass('on');
+            } else {
+                $("#playlist-play-button").removeClass('on');
+            }
+
+            if (this.looped) {
+                $("#playlist-loop-button").addClass('on');
+            } else {
+                $("#playlist-loop-button").removeClass('on');
+            }
         },
 
         addTrack: function(track) {
@@ -276,7 +108,10 @@ playlist = {
                 for (let i = 0; i < this.placedTracks.length; i++) {
                     if (_.isEqual(this.placedTracks[i], input)) {
                         this.placedTracks[i].erase();
-                        this.patterns.splice(i, 1);
+                        this.placedTracks.splice(i, 1);
+                        if (selectedTrack == input) {
+                            selectedTrack = undefined;
+                        }
                         break;
                     }
                 }
@@ -303,7 +138,9 @@ playlist = {
         },
 
         play: function() {
-            if (this.playing || this.patterns.length == 0) {
+            console.log(`current tick: ${this.currentTick} length: ${this.length}`);
+            if (this.playing || this.patterns.length == 0 || this.currentTick >= this.length) {
+                console.log("play rejected");
                 return;
             }
             this.playing = true;
@@ -319,20 +156,37 @@ playlist = {
                 note.play(startTime + ((note.tick - this.currentTick) * tickTime / 1000));
             });
 
-            setTimeout(() => {
-                if (scheduledBuffers.length == 0)
-                    this.playing = false;
-            }, queue[queue.length - 1].tick * tickTime);
+            let end = function() {
+                let trackTime = queue[queue.length - 1].tick * tickTime - (playlist.currentTick * tickTime);
+                let predictedEndTime = Date.now() + trackTime;
 
-            let playlist = this;
+                function handle() {
+                    if (Date.now() < predictedEndTime) {
+                        setTimeout(handle, predictedEndTime - Date.now());
+                    } else if (scheduledBuffers.length == 0) {
+                        if (playlist.playing) {
+                            playlist.stop();
+                            if (playlist.looped) {
+                                playlist.time = 0;
+                                playlist.play();
+                            }
+                        }
+                    }                
+                }
+
+                setTimeout(handle, trackTime)
+            }();
+
             let moveTimerLine = function() {
                 let startTime = Date.now();
                 let desiredTime = 0;
+                let predictedTick = playlist.currentTick;
 
                 function moveLine() {
-                    if (playlist.playing) {
+                    if (playlist.playing && (playlist.currentTick == predictedTick)) {
                         console.log(scheduledBuffers);
                         playlist.currentTick++;
+                        predictedTick++;
                         playlist.timerLine.render();
                         playlist.timeDisplay.update();
                         let diff = (Date.now() - startTime) - desiredTime;
@@ -347,6 +201,15 @@ playlist = {
         stop: function() {
             window.stopPlayback();
             this.playing = false;
+            this.render();
+        },
+
+        restart: function() {
+            this.stop();
+            setTimeout(() => {
+                this.currentTick = 0;
+                this.play();
+            }, getTickSpeed());
         },
 
         createQueue: function() {
@@ -371,6 +234,8 @@ playlist = {
                 $("#playlist-table tr").append(currentCol.cloneNode(true));
                 this.cols++;
             }
+            playListTableEvents();
+            this.render();
         },
 
         zoom: function(amount) {
@@ -382,140 +247,229 @@ playlist = {
         }
     }
 
-window.addEventListener("load", e => {
+function constructPlayList() {
+    const playlistTable = document.getElementById("playlist-table");
+    var playlistRows = playlist.rows;
+    var playlistCols = playlist.cols;
     
 
-    function constructPlayList() {
-        const playlistTable = document.getElementById("playlist-table");
-        var playlistRows = playlist.rows;
-        var playlistCols = playlist.cols;
-        
-
-        for (let row = 0; row < playlistRows; row++) {
-            let currentRow = document.createElement("tr");
-            for (let col = 0; col < playlistCols; col++) {
-                let currentCol = document.createElement("td");
-                if ((col / 4 | 0) % 2 == 1) {
-                    currentCol.classList.add("dark");
-                }
-
-                currentRow.append(currentCol);
+    for (let row = 0; row < playlistRows; row++) {
+        let currentRow = document.createElement("tr");
+        for (let col = 0; col < playlistCols; col++) {
+            let currentCol = document.createElement("td");
+            if ((col / 4 | 0) % 2 == 1) {
+                currentCol.classList.add("dark");
             }
-            playlistTable.append(currentRow);
+
+            currentRow.append(currentCol);
         }
+        playlistTable.append(currentRow);
     }
+}
 
-    function playlistEvents() {
-        $('#playlist-table *').off();
+function playListTableEvents() {
+    $('#playlist-table *').off();
+    $("#playlist-table tr td").mousedown(function(event) {
+        if (selectedPattern == undefined) {
+            return;
+        }
+        let row = $(this).parent().index();
+        let col = $(this).index();
+        let width = selectedPattern.patternLength;
+
+        if ($(this).hasClass("selected")) {
+            playlist.selectedTrack = playlist.getTrackSelectedAt(row, col);
+
+            if (event.button == 2) { //right click
+                playlist.removeTrack(playlist.selectedTrack);
+            } else {
+                playlist.selectedTrack.move();
+            }
+        } else {
+            if (!playlist.isAreaSelected({row: row, col: col, width: width})) {
+                let newTrack = new PlaylistTrack(row, col, width, selectedPattern);
+                playlist.addTrack(newTrack);
+                playlist.selectedTrack = newTrack;
+                playlist.render();
+            }
+        }
+
+
+    });
+}
+
+function playListFunctionalityEvents() {
+    document.getElementById('playlist-table').addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    });
+
+    let timerLineEvents = function() {
         $('#timer-line').off();
-
         $('#playlist').scroll(function() {
             $("#timer-line").css('top', $(this).scrollTop() + 'px');
         });
 
-        $("#playlist-table tr td").mousedown(function() {
-            if (selectedPattern == undefined) {
-                return;
-            }
-            let row = $(this).parent().index();
-            let col = $(this).index();
-            let width = selectedPattern.patternLength;
+        let movingTimer = false;
+        let mouseX = 0;
+        function updateMouse(e) {
+            mouseX = e.clientX;
+        }
 
-            if ($(this).hasClass("selected")) {
-                playlist.selectedTrack = playlist.getTrackSelectedAt(row, col);
-                playlist.selectedTrack.move();
-            } else {
-                if (!playlist.isAreaSelected({row: row, col: col, width: width})) {
-                    let newTrack = new PlaylistTrack(row, col, width, selectedPattern);
-                    playlist.addTrack(newTrack);
-                    playlist.selectedTrack = newTrack;
-                    playlist.render();
+        $("#timer-line").mousedown(function(e) {
+            movingTimer = true;
+            updateMouse(e);
+            document.getElementById('playlist').addEventListener('mousemove', updateMouse);
+            $(this).css('cursor', 'grabbing');
+            dragTimer();
+        });
+
+        function dragTimer() {
+            if (movingTimer) {
+                let mouseOnTable = mouseX - $("#playlist").offset().left; 
+                $("#timer-line").css('left', $("#playlist").scrollLeft() + mouseOnTable + "px");
+                setTimeout(() => dragTimer(), 50);
+            }
+        }
+
+        window.addEventListener('mouseup', () => {
+            if (movingTimer == true) {
+                document.getElementById('playlist').removeEventListener('mousemove', updateMouse);
+                $("#timer-line").css('cursor', '');
+                playlist.timerLine.setPlaylistTime();
+            }
+            movingTimer = false;
+        });
+    }(); 
+
+    let timeDisplayEvents = function() {
+        $("#current-time-display").off();
+        $("#current-time-display").on('input', function() {
+            console.log($(this).val());
+            if ($(this).val() != "") {
+                console.log('is number');
+                let time = Number($(this).val());
+                if (!(time > (playlist.length * getTickSpeed() / 1000) || time < 0)) {
+                    console.log("time changed");
+                    playlist.time = time;
+                    console.log(playlist);
                 }
             }
         });
+    }();
 
+
+    let autoScroller = function() {
+        $("#playlist-holder .autoscroller").off();
+        let scrollPercentage = 0.5;
+        let autoScrollingLeft = false;
+        let autoScrollingRight = false;
+        let scrollDelay = 50;
+        let scrollAmount = function() {
+            return $("#playlist")[0].scrollWidth / 50;
+        }; //px
+
+        function scrollPlaylistLeft() {
+            console.log("scroll percentage: " + scrollPercentage);
+            let currentLeftScroll = $("#playlist").scrollLeft();
+            if (currentLeftScroll - scrollAmount() <= 0) {
+            $("#playlist").scrollLeft(0);
+            $("#playlist-autoscroller-left").hide();
+            autoScrollingLeft = false;
+            } else {
+            $("#playlist").scrollLeft(currentLeftScroll - (scrollAmount() * scrollPercentage));
+            }
+
+            if (autoScrollingLeft) {
+            setTimeout( () => scrollPlaylistLeft(), scrollDelay);
+            }
+        }
+
+        function scrollPlaylistRight() {
+            console.log("scroll percentage: " + scrollPercentage);
+            let currentLeftScroll = $("#playlist").scrollLeft();
+            let maxScrollRight = $("#playlist")[0].scrollWidth - $("#playlist").width();
+            if (currentLeftScroll + scrollAmount() >= maxScrollRight) {
+                playlist.extend();
+            } else {
+            $("#playlist").scrollLeft( currentLeftScroll + (scrollAmount() * scrollPercentage));
+            }
+
+            if (autoScrollingRight) {
+            setTimeout( () => scrollPlaylistRight(), scrollDelay);
+            }
+        }
+
+        $("#playlist-autoscroller-right").mouseenter(function() {
+            autoScrollingRight = true;
+            scrollPlaylistRight();
+            $("#playlist-autoscroller-left").show();
+        });
+
+        $("#playlist-autoscroller-right").mouseleave(function() {
+            autoScrollingRight = false;
+            scrollPercentage = 0.5;
+        });
+
+        $("#playlist-autoscroller-right").mousemove(function(e) {
+            let scrollerOffset = $("#playlist-autoscroller-right").offset();
+            let distanceFromRight = (e.clientX - scrollerOffset.left);
+            scrollPercentage = distanceFromRight / $("#playlist-autoscroller-right").width();
+        });
+
+        $("#playlist-autoscroller-left").mouseenter(function() {
+            autoScrollingLeft = true;
+            scrollPlaylistLeft();
+            $("#playlist-autoscroller-right").show();
+        });
+
+        $("#playlist-autoscroller-left").mouseleave(function() {
+            autoScrollingLeft = false;
+            scrollPercentage = 0.5;
+        });
+
+        $("#playlist-autoscroller-left").mousemove(function(e) {
+            let scrollerOffset = $("#playlist-autoscroller-left").offset();
+            let distanceFromLeft = ($("#playlist-autoscroller-left").width() - (e.clientX - scrollerOffset.left))
+            scrollPercentage = distanceFromLeft / $("#playlist-autoscroller-left").width();
+        });
+
+        $("#playlist-autoscroller-left").hide();
+    }();
+
+    let toolBarButtonEvents = function() {
         $("#playlist-play-button").click( function() {
             if (playlist.playing) {
-                switchIndicatorOff(this);
                 playlist.stop();
             } else {
-                switchIndicatorOn(this);
                 playlist.play();
             }
         });
 
-        $("#playlist-stop-button").click( function() {
-            if (playlist.playing) {
-                switchIndicatorOn(this);
-                playlist.stop();
-                playlist.currentTick = 1;
-                playlist.render();
-                setTimeout(() => switchIndicatorOff(this), 500);
+        $("#playlist-loop-button").click( function() {
+            if (playlist.looped) {
+                $(this).removeClass('on');
+                playlist.looped = false;
+            } else {
+                $(this).addClass('on');
+                playlist.looped = true;
             }
         });
 
-        function switchIndicatorOff(indicator) {
-            indicator.classList.remove("on");
-            indicator.classList.add("off");
-        }
-
-        function switchIndicatorOn(indicator) {
-            indicator.classList.remove("off");
-            indicator.classList.add("on");
-        }
-
-        let timerLineEvents = function() {
-            let movingTimer = false;
-            let mouseX = 0;
-            function updateMouse(e) {
-                mouseX = e.clientX;
+        $("#playlist-restart-button").click( function() {
+            if (playlist.playing) {
+                playlist.restart();
+            } else {
+                playlist.time = 0;
             }
-
-            $("#timer-line").mousedown(function() {
-                movingTimer = true;
-                document.getElementById('playlist').addEventListener('mousemove', updateMouse);
-                $(this).css('cursor', 'grabbing');
-                dragTimer();
-            });
-
-            function dragTimer() {
-                if (movingTimer) {
-                    let offset = $("#timer-line").offset();
-                    let movement = mouseX - offset.left;
-                    $("#timer-line").css('left', $("#timer-line").position().left + movement + "px");
-                    setTimeout(() => dragTimer(), 50);
-                }
-            }
-
-            window.addEventListener('mouseup', () => {
-                movingTimer = false;
-                document.getElementById('playlist').removeEventListener('mousemove', updateMouse);
-                $("#timer-line").css('cursor', '');
-                playlist.timerLine.setPlaylistTime();
-            });
-        }(); 
-
-        let timeDisplayEvents = function() {
-            $("#current-time-display").off();
-            $("#current-time-display").on('input', function() {
-                console.log($(this).val());
-                if ($(this).val() != "") {
-                    console.log('is number');
-                    let time = Number($(this).val());
-                    if (!(time > (playlist.length * getTickSpeed() / 1000) || time < 0)) {
-                        console.log("time changed");
-                        playlist.time = time;
-                        console.log(playlist);
-                    }
-                }
-            });
-        }();
+            
+        });
+    }();
+}
 
 
-    }
-    
 
-    
+window.addEventListener("load", e => {
     constructPlayList();
-    playlistEvents();
+    playListTableEvents();
+    playListFunctionalityEvents();
 });

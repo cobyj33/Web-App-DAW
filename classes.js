@@ -50,6 +50,15 @@ class Sound {
       }
       return max;
     }
+
+    get standardLength() {
+      let max = 0;
+      for (let i = 0; i < this.notes.length; i++) {
+        if (this.notes[i].tick > max)
+          max = this.notes[i].tick;
+      }
+      return max;
+    }
   
     get sounds() {
       let noteSounds = [];
@@ -73,7 +82,9 @@ class Sound {
     clone() {
       let clonedNotes = [];
       this.notes.forEach(note => clonedNotes.push(note.clone()));
-      return new Pattern(clonedNotes);
+      let newPattern = new Pattern(clonedNotes);
+      newPattern.name = this.name;
+      return newPattern;
     }
   
     playFromStart() {
@@ -113,7 +124,6 @@ class Sound {
           }
         };
         update();
-
       }();
 
       setTimeout(() => {

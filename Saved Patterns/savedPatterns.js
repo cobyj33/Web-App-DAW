@@ -31,37 +31,67 @@ function createPatternHTML(pattern) {
 var savedPatterns = {
     patterns: [],
 
+    get length() {
+        return this.patterns.length;
+    },
+
     addPattern: function(pattern) {
         if (pattern.name == "") {
             pattern.name = `New Pattern #${this.patterns.length + 1}`;
         }
         this.patterns.push(pattern);
-    },
-
-    removePattern: function(name) {
-
+        constructSavedPatterns();
     },
 }
 
-function savedPatternsProgram() {
-    $("#saved-patterns-window").hide();
-    $(".pattern-edit-dropdown").hide();
-    $("#saved-patterns-close-button").click(toggleVisibility);
 
-    function constructSavedPatterns() {
+
+let constructSavedPatterns = function() {
         const savedPatternsDisplay = document.getElementById("saved-patterns");
+
+        let makeDisplayFromPattern = function(pattern) {
+    const patternInstance = document.createElement("div");
+    patternInstance.classList.add("pattern-instance");
+    patternInstance.insertAdjacentHTML('beforeend', createPatternHTML(pattern));
+
+    return patternInstance;
+        }
+
+        let appendVisualizer = function(pattern, patternInstance) {
+                const visualizer = $(patternInstance).find(".pattern-visualizer")[0];
+                visualizer.append(document.createElement("tr"));
+                visualizer.append(document.createElement("tr"));
+                let patternSounds = pattern.sounds;
+                for (let i = 0; i < patternSounds.length; i++) {
+                    $(visualizer).find("tr:nth-of-type(1)").append(document.createElement("td"));
+                    const sound_name = document.createElement("td");
+                    sound_name.innerText = patternSounds[i].name;
+                    sound_name.classList.add(`sound-${patternSounds[i].name}`);
+                    $(visualizer).find("tr:nth-of-type(2)").append(sound_name)
+                }
+        }
         
         while (savedPatternsDisplay.firstChild) {
             savedPatternsDisplay.removeChild(savedPatternsDisplay.lastChild);
         }
 
+        let selectedTrackText = 'N/A'
+        if (selectedPattern) {
+            selectedTrackText = selectedPattern.name;
+        }
+        document.getElementById("current-selected-track").innerText = `Currently Selected: ${selectedTrackText}`;
+
         for (let i = 0; i < savedPatterns.patterns.length; i++) {
             let patternInstance = makeDisplayFromPattern(savedPatterns.patterns[i]);
+            if (savedPatterns.patterns[i] == selectedPattern) {
+                $(patternInstance).find('.pattern-select-button').addClass("selected-pattern");
+            }
+
             appendVisualizer(savedPatterns.patterns[i], patternInstance);
             savedPatternsDisplay.append(patternInstance);
         }
 
-        function savedPatternInstanceEvents() {
+        let savedPatternInstanceEvents = function() {
             $("#saved-patterns *").off();
             $(".pattern-edit-dropdown").hide();
             
@@ -94,112 +124,74 @@ function savedPatternsProgram() {
             });
 
             $(".pattern-select-button").click(function() {
-                $(".pattern-select-button").css('background-color', '');
+                $(".pattern-select-button").removeClass('selected-pattern');
                 if (_.isEqual(selectedPattern, getPatternOfElement(this))) {
                     selectedPattern = undefined;
+                    $(this).removeClass('selected-pattern');
                     $("#current-selected-track").text(`Currently Selected: N/A`);
                 } else {
                     selectedPattern = getPatternOfElement(this);
+                    $(this).addClass('selected-pattern');
                     $("#current-selected-track").text(`Currently Selected: ${selectedPattern.name}`);
-                    $(this).css('background-color', 'green');
                 }
             });
-        }
+        }();
+    }
 
-        function playPattern(pattern, patternInstance) {
+let playPattern = function(pattern, patternInstance) {
+        if (pattern.playing) {
+            console.log("Cannot play pattern: Already playing");
+            return;
+        }
+        pattern.play();
+
+        let currentVisualizer = $(patternInstance).find(".pattern-visualizer")[0];
+        let visualizingRow = $(currentVisualizer).find('tr:nth-of-type(1)');
+        let timeSlider = $(patternInstance).find(".pattern-time-manager input");
+        let timeText = $(patternInstance).find(".pattern-time-manager p");
+        let startTime = Date.now();
+        let desiredTime = 0;
+        let tickTime = getTickSpeed();
+        let maxTick = $(patternInstance).find(".pattern-time-manager input").attr('max');
+        visualize();
+        function visualize() {
+            timeSlider.val(pattern.currentTick);
+            timeText.text(`Tick ${pattern.currentTick} / ${maxTick}`);
+            let currentNotes = [...pattern.currentlyPlaying];
+            console.log(currentNotes);
+            $(visualizingRow).children().removeClass("visualizing");
+            
+            for (let i = 0; i < currentNotes.length; i++) {
+                let soundName = currentNotes[i].sound.name;
+                let columnIndex = $(currentVisualizer).find(`.sound-${soundName}`).index();
+                $(visualizingRow).find(`td:nth-of-type(${columnIndex + 1})`).addClass("visualizing");
+            }  
+
             if (pattern.playing) {
-                console.log("Cannot play pattern: Already playing");
-                return;
-            }
-            pattern.play();
-
-            let currentVisualizer = $(patternInstance).find(".pattern-visualizer")[0];
-            let visualizingRow = $(currentVisualizer).find('tr:nth-of-type(1)');
-            let timeSlider = $(patternInstance).find(".pattern-time-manager input");
-            let timeText = $(patternInstance).find(".pattern-time-manager p");
-            let startTime = Date.now();
-            let desiredTime = 0;
-            let tickTime = getTickSpeed();
-            let maxTick = $(patternInstance).find(".pattern-time-manager input").attr('max');
-            visualize();
-            function visualize() {
-                timeSlider.val(pattern.currentTick);
-                timeText.text(`Tick ${pattern.currentTick} / ${maxTick}`);
-                let currentNotes = [...pattern.currentlyPlaying];
-                console.log(currentNotes);
+                let diff = (Date.now() - startTime) - desiredTime;
+                desiredTime += tickTime;
+                window.setTimeout( () => visualize(), (tickTime - diff));
+            } else {
                 $(visualizingRow).children().removeClass("visualizing");
-                
-                for (let i = 0; i < currentNotes.length; i++) {
-                    let soundName = currentNotes[i].sound.name;
-                    let columnIndex = $(currentVisualizer).find(`.sound-${soundName}`).index();
-                    $(visualizingRow).find(`td:nth-of-type(${columnIndex + 1})`).addClass("visualizing");
-                }  
-
-                if (pattern.playing) {
-                    let diff = (Date.now() - startTime) - desiredTime;
-                    desiredTime += tickTime;
-                    window.setTimeout( () => visualize(), (tickTime - diff));
-                } else {
-                    $(visualizingRow).children().removeClass("visualizing");
-                }
             }
         }
+    };
 
-        function getPatternOfElement(element) {
-            let instance = $(element).parents(".pattern-instance")[0];
-            if (instance) {
-                return savedPatterns.patterns[$(instance).index()];
-            }
+let getPatternOfElement = function(element) {
+        let instance = $(element).parents(".pattern-instance")[0];
+        if (instance) {
+            return savedPatterns.patterns[$(instance).index()];
         }
+    };
 
-
-        savedPatternInstanceEvents();
-    }
-
-    function makeDisplayFromPattern(pattern) {
-        const patternInstance = document.createElement("div");
-        patternInstance.classList.add("pattern-instance");
-        patternInstance.insertAdjacentHTML('beforeend', createPatternHTML(pattern));
-
-        return patternInstance;
-    }
-    
-    function appendVisualizer(pattern, patternInstance) {
-        const visualizer = $(patternInstance).find(".pattern-visualizer")[0];
-        visualizer.append(document.createElement("tr"));
-        visualizer.append(document.createElement("tr"));
-        let patternSounds = pattern.sounds;
-        for (let i = 0; i < patternSounds.length; i++) {
-            $(visualizer).find("tr:nth-of-type(1)").append(document.createElement("td"));
-            const sound_name = document.createElement("td");
-            sound_name.innerText = patternSounds[i].name;
-            sound_name.classList.add(`sound-${patternSounds[i].name}`);
-            $(visualizer).find("tr:nth-of-type(2)").append(sound_name)
-        }
-    }
-
-    function addPattern() {
-        return null;
-    }
-
-    function removePattern(index) {
-        return null;
-    }
-
-    this.addPattern = addPattern;
-    this.removePattern = removePattern;
-
-    function toggleVisibility() {
+    let toggleVisibility = function() {
         $("#saved-patterns-window").toggle();
         if ($("#saved-patterns-window").is(":visible")) {
             constructSavedPatterns();
         }
     }
 
-    $("#saved-patterns-selection-button").click(toggleVisibility);
-}
-
-function makePatternFromJSONObject(jsonObject) {
+let makePatternFromJSONObject = function(jsonObject) {
     let notes = [];
     jsonObject.notes.forEach(note => {
         notes.push(new Note(new Sound(note.sound.name, note.sound.source), note.tick));
@@ -208,7 +200,7 @@ function makePatternFromJSONObject(jsonObject) {
     pattern.name = jsonObject.name;
     console.log(pattern);
     return pattern;
-}
+    }
 
 $(window).on('load', function() {
     $("#saved-patterns-window").hide();
@@ -224,3 +216,13 @@ $(window).on('load', function() {
             savedPatternsProgram();
         });
 });
+
+let savedPatternsProgram = function() {
+    $("#saved-patterns-window").hide();
+    $(".pattern-edit-dropdown").hide();
+    $("#saved-patterns-close-button").click(toggleVisibility);
+    constructSavedPatterns();
+    
+
+    $("#saved-patterns-selection-button").click(toggleVisibility);
+}

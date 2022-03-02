@@ -1,7 +1,12 @@
+#playlist-holder {
+    position: relative;
+}
+
+
 #playlist {
-    width: 90vw;
+    width: 98vw;
     height: 75vh;
-    margin-left: 5vw;
+    margin-left: 1vw;
     overflow: scroll;
     background: linear-gradient(to bottom, black, #222222);
     margin-top: 20px;
@@ -16,21 +21,26 @@
 }
 
 #playlist-table tr {
-    height: max(100px, 10vh);
+    height: 100px;
     background-color: #AAAAAA;
 }
 
+#playlist-table * {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
 #playlist-table tr td {
-    height: max(100px, 10vh);
+    height: 10vh;
     position: relative;
-    min-height: max(100px, 10vh);
     background-color: #444444;
     width: 25px;
-    min-width: 25px;
-    border: 0px solid white;
+    min-width: 10px;
     /* border-radius: 5px; */
     overflow: visible !important;
     margin: 0;
+    content-visibility: hidden;
 }
 
 #playlist-table tr td.dark {
@@ -44,7 +54,7 @@
     top: 0px;
     height: 100%;
     border-radius: 25%;
-    border: 2px solid black;
+    border: 4px double black;
 }
 
 #playlist-table tr td:hover {
@@ -59,7 +69,6 @@
 #playlist-table tr td canvas {
     z-index: 1;
     cursor: grab;
-    padding: 5px;
     margin: 0;
     background: rgba(0, 0, 0, 0.5) !important;
 }
@@ -80,4 +89,32 @@
     border: 1px solid black;
     cursor: grab;
     transition: left 0.1s;
+}
+
+#playlist-holder .autoscroller {
+    position: absolute;
+    height: 100%;
+    width: max(50px, 7%);
+    background-color: black;
+    opacity: 0;
+    top: 0;
+    z-index: 3;
+}
+
+#playlist-autoscroller-left {
+    left: 0;
+}
+
+#playlist-autoscroller-right {
+    right: 0;
+}
+
+.canvas-info-display {
+    background-color: black;
+    width: 100px;
+    height: 100px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transition: left 0.05s, top 0.05s;
 }
