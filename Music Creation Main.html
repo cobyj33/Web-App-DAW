@@ -49,7 +49,21 @@
             <li> <button type="button" id="playlist-loop-button" class="status-indicator "> L </button> </li>
             <li> <button type="button" id="playlist-play-button" class="status-indicator "> ▶ </button> </li>
             <li> <button type="button" id="playlist-restart-button" class="status-indicator"> ↺ </button> </li>
-            <li> <button type="button" id="playlist-save-button" class="status-indicator"> Save </button> </li>
+            <li> 
+                <button type="button" id="playlist-save-button" class="status-indicator"> Save </button>
+                <div id="save-ui" class="action-bar-drop-down">
+                    <textarea> </textarea>
+                    <h3> Copy Key </h3>
+                </div>
+            </li>
+            <li>
+                <button type="button" id="playlist-open-button" class="status-indicator"> Open </button>
+                <div id="open-ui" class="action-bar-drop-down">
+                    <h3> Enter JSON Key: </h3>
+                    <textarea> </textarea>
+                    <button id="playlist-load-button" class="windowSelectionButton"> Load </button>
+                </div>
+            </li>
         </ul>
 
         <div id="windowSelection">
@@ -60,7 +74,7 @@
     </div>
 
     <div id="playlist-holder">
-        <div id="playlist">
+        <div id="playlist" tabindex="0">
             
             <div id="timer-line"> </div>
 
@@ -69,8 +83,10 @@
             </table>
         </div>
 
-        <div id="playlist-autoscroller-left" class="autoscroller"> <span> &lt </span> </div>
-        <div id="playlist-autoscroller-right" class="autoscroller"> <span> &gt </span> </div>
+        <div id="playlist-autoscroller-left" class="autoscroller horizontal"> <span> &lt </span> </div>
+        <div id="playlist-autoscroller-right" class="autoscroller horizontal"> <span> &gt </span> </div>
+        <div id="playlist-autoscroller-top" class="autoscroller vertical"> <span> ↑ </span> </div>
+        <div id="playlist-autoscroller-bottom" class="autoscroller vertical"> <span> ↓ </span> </div>
     </div>
 
 
@@ -129,11 +145,9 @@
     </div>
 
     <div id="radial-menu">
-
-        
         <div class="radial-menu-selection">
             <div class="content" id="quick-select">
-                WIP
+                
             </div>
         </div>
         <div class="radial-menu-selection"> 

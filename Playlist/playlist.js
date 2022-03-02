@@ -2,10 +2,14 @@ function secondsToTicks(seconds) {
     return Math.round((seconds * 1000) / getTickSpeed());
 } 
 
+const defaultPlaylistWidth = 25;
+const defaultPlaylistHeight = 100;
+
+const minRows = 4;
+const minCols = 20;
+
 playlist = {
-        rows: 10,
-        cols: 40,
-        zoom: 100,
+        zoom: 1,
         placedTracks: [],
         currentlyPlaying: [],
         selectedTrack: undefined,
@@ -16,7 +20,6 @@ playlist = {
         timerLine: {
 
             render: function() {
-                console.log(playlist.currentTick);
                 $("#timer-line").css('transition', `left ${getTickSpeed() / 1000}s`);
                 $("#timer-line").css('left', (playlist.currentTick - 1) * $("#playlist-table tr td").width() + "px");
             },
@@ -44,6 +47,14 @@ playlist = {
                 let displayedTime = Math.round(playlist.currentTime * 100) / 100;
                 $("#current-time-display").val(displayedTime);
             }
+        },
+
+        get rows() {
+            return $("#playlist-table tr").length;
+        },
+
+        get cols() {
+            return $("#playlist-table tr:first").children().length;
         },
 
         get currentTime() {
@@ -78,6 +89,16 @@ playlist = {
         },
 
         render: function() {
+            $("#playlist-table tr").css({
+                "height": `${defaultPlaylistHeight * this.zoom}px`,
+            });
+
+            $("#playlist-table tr td").css({
+                "max-width": `${defaultPlaylistWidth * this.zoom}px`,
+                "min-width": `${defaultPlaylistWidth * this.zoom}px`,
+            });
+
+
             this.placedTracks.forEach(track => track.render());
             this.timerLine.render();
             this.timeDisplay.update();
@@ -97,7 +118,7 @@ playlist = {
         addTrack: function(track) {
             this.placedTracks.push(track);
             if (track.rightSide > this.cols) {
-                this.extend(track.width);
+                this.extendHorizontally(track.width);
             }
         },
 
@@ -109,8 +130,8 @@ playlist = {
                     if (_.isEqual(this.placedTracks[i], input)) {
                         this.placedTracks[i].erase();
                         this.placedTracks.splice(i, 1);
-                        if (selectedTrack == input) {
-                            selectedTrack = undefined;
+                        if (this.selectedTrack == input) {
+                            this.selectedTrack = undefined;
                         }
                         break;
                     }
@@ -138,13 +159,12 @@ playlist = {
         },
 
         play: function() {
-            console.log(`current tick: ${this.currentTick} length: ${this.length}`);
             if (this.playing || this.patterns.length == 0 || this.currentTick >= this.length) {
                 console.log("play rejected");
                 return;
             }
             this.playing = true;
-            this.render();
+            this.fit();
             
             let queue = this.createQueue();
             console.log(queue);
@@ -184,7 +204,6 @@ playlist = {
 
                 function moveLine() {
                     if (playlist.playing && (playlist.currentTick == predictedTick)) {
-                        console.log(scheduledBuffers);
                         playlist.currentTick++;
                         predictedTick++;
                         playlist.timerLine.render();
@@ -212,45 +231,127 @@ playlist = {
             }, getTickSpeed());
         },
 
-        createQueue: function() {
+        createQueue: function(start) {
             let queue = this.notes;
             queue.sort((a, b) => a.tick - b.tick);
-            queue = queue.filter(note => note.tick >= this.currentTick);
+
+            if (start) {
+                queue = queue.filter(note => note.tick >= start);
+            } else {
+                queue = queue.filter(note => note.tick >= this.currentTick);
+            }
+            
             return queue;
         },
 
-        extend: function(desiredAmount) {
+        extendHorizontally: function(desiredAmount) {
             const playlistTable = document.getElementById("playlist-table");
             let extendAmount = 20;
             if (desiredAmount > 20) {
                 extendAmount = desiredAmount + (desiredAmount % 20);
             }
 
+            let colCount = this.cols
+
             for (let col = 0; col < extendAmount; col++) {
                 let currentCol = document.createElement("td");
-                if (((this.cols / 4 | 0) % 2) == 1) {
+                if ((((colCount + col) / 4 | 0) % 2) == 1) {
                     currentCol.classList.add('dark');
                 }
                 $("#playlist-table tr").append(currentCol.cloneNode(true));
-                this.cols++;
             }
             playListTableEvents();
             this.render();
         },
 
-        zoom: function(amount) {
+        extendVertically: function(desiredAmount) {
+            const playlistTable = document.getElementById("playlist-table");
+            let extendAmount = desiredAmount;
+            if (isNaN(desiredAmount) || desiredAmount < 1) {
+                extendAmount = 1;
+            }
 
+
+            for (let row = 0; row < extendAmount; row++) {
+                const currentRow = document.createElement("tr");
+                for (let col = 0; col < this.cols; col++) {
+                    const currentCol = document.createElement("td");
+                    if (((col / 4 | 0) % 2) == 1) {
+                        currentCol.classList.add('dark');
+                    }
+                    $(currentRow).append(currentCol);
+                }
+                $("#playlist-table").append(currentRow);
+            }
+        
+            playListTableEvents();
+            this.render();
         },
 
-        zoomTo: function(amount) {
+        fit: function() {
+            let fittedColumnCount = this.length;
+            let fittedRowCount = Math.max(...(this.placedTracks.map(track => track.row)));
 
-        }
+            if (fittedRowCount < minRows) {
+                fittedRowCount = minRows;
+            }
+
+            if (fittedColumnCount < minCols) {
+                fittedColumnCount = minCols;
+            }
+
+            let rowsToDelete = this.rows - fittedRowCount;
+            let columnsToDelete = this.cols - fittedColumnCount;
+
+            console.log('rows to delete: ', rowsToDelete);
+            console.log('cols to delete: ', columnsToDelete);
+
+            for (let i = 0; i < rowsToDelete; i++) {
+                $("#playlist-table tr:last").remove();
+            }
+
+            for (let i = 0; i < columnsToDelete; i++) {
+                $("#playlist-table tr").find("td:last").remove();
+            }
+
+            if ($('#playlist').scrollLeft() > $('#playlist')[0].scrollWidth) {
+                $('#playlist').scrollLeft(0);
+            }
+
+            if ($('#playlist').scrollTop() > $('#playlist')[0].scrollHeight) {
+                $('#playlist').scrollTop(0);
+            }
+
+            this.render();
+        },
+
+        exportJSON: function() {
+            let exportedTracks = [];
+            this.placedTracks.forEach(track => {
+                let {row, col, width, pattern} = track;
+                pattern = pattern.clone();
+                exportedTracks.push({row, col, width, pattern});
+            });
+
+            return JSON.stringify(exportedTracks);
+        },
+
+        importJSON: function(exportedJSON) {
+            this.placedTracks = [];
+            this.render();
+            exportedJSON.forEach(track => {
+                let {row, col, width, pattern} = track;
+                pattern = makePatternFromJSONObject(pattern);
+                this.addTrack(new PlaylistTrack(row, col, width, pattern));
+            });
+            this.render();
+        },
     }
 
 function constructPlayList() {
     const playlistTable = document.getElementById("playlist-table");
-    var playlistRows = playlist.rows;
-    var playlistCols = playlist.cols;
+    var playlistRows = minRows;
+    var playlistCols = minCols;
     
 
     for (let row = 0; row < playlistRows; row++) {
@@ -265,6 +366,8 @@ function constructPlayList() {
         }
         playlistTable.append(currentRow);
     }
+
+
 }
 
 function playListTableEvents() {
@@ -344,39 +447,40 @@ function playListFunctionalityEvents() {
     let timeDisplayEvents = function() {
         $("#current-time-display").off();
         $("#current-time-display").on('input', function() {
-            console.log($(this).val());
             if ($(this).val() != "") {
-                console.log('is number');
                 let time = Number($(this).val());
                 if (!(time > (playlist.length * getTickSpeed() / 1000) || time < 0)) {
-                    console.log("time changed");
                     playlist.time = time;
-                    console.log(playlist);
                 }
             }
         });
     }();
 
 
-    let autoScroller = function() {
+    let autoScrollers = function() {
         $("#playlist-holder .autoscroller").off();
         let scrollPercentage = 0.5;
         let autoScrollingLeft = false;
         let autoScrollingRight = false;
+        let autoScrollingUp = false;
+        let autoScrollingDown = false;
         let scrollDelay = 50;
-        let scrollAmount = function() {
+        let horizontalScrollAmount = function() {
             return $("#playlist")[0].scrollWidth / 50;
         }; //px
+        let verticalScrollAmount = function() {
+            return $("#playlist")[0].scrollHeight / 50;
+        }
+
 
         function scrollPlaylistLeft() {
-            console.log("scroll percentage: " + scrollPercentage);
             let currentLeftScroll = $("#playlist").scrollLeft();
-            if (currentLeftScroll - scrollAmount() <= 0) {
+            if (currentLeftScroll - horizontalScrollAmount() <= 0) {
             $("#playlist").scrollLeft(0);
             $("#playlist-autoscroller-left").hide();
             autoScrollingLeft = false;
             } else {
-            $("#playlist").scrollLeft(currentLeftScroll - (scrollAmount() * scrollPercentage));
+            $("#playlist").scrollLeft(currentLeftScroll - (horizontalScrollAmount() * scrollPercentage));
             }
 
             if (autoScrollingLeft) {
@@ -385,13 +489,12 @@ function playListFunctionalityEvents() {
         }
 
         function scrollPlaylistRight() {
-            console.log("scroll percentage: " + scrollPercentage);
             let currentLeftScroll = $("#playlist").scrollLeft();
             let maxScrollRight = $("#playlist")[0].scrollWidth - $("#playlist").width();
-            if (currentLeftScroll + scrollAmount() >= maxScrollRight) {
-                playlist.extend();
+            if (currentLeftScroll + horizontalScrollAmount() >= maxScrollRight) {
+                playlist.extendHorizontally();
             } else {
-            $("#playlist").scrollLeft( currentLeftScroll + (scrollAmount() * scrollPercentage));
+            $("#playlist").scrollLeft( currentLeftScroll + (horizontalScrollAmount() * scrollPercentage));
             }
 
             if (autoScrollingRight) {
@@ -399,18 +502,43 @@ function playListFunctionalityEvents() {
             }
         }
 
+        function scrollPlaylistUp() {
+            let currentTopScroll = $("#playlist").scrollTop();
+            if (currentTopScroll - verticalScrollAmount() <= 0) {
+                $("#playlist").scrollTop(0);
+                $("#playlist-autoscroller-top").hide();
+                autoScrollingUp = false;
+            } else {
+                $("#playlist").scrollTop(currentTopScroll - (verticalScrollAmount() * scrollPercentage));
+            }
+
+            if (autoScrollingUp) {
+            setTimeout( () => scrollPlaylistUp(), scrollDelay);
+            }
+        }
+
+        function scrollPlaylistDown() {
+            let currentTopScroll = $("#playlist").scrollTop();
+            let maxScrollTop = $("#playlist")[0].scrollHeight - $("#playlist").height();
+            if (currentTopScroll + verticalScrollAmount() >= maxScrollTop) {
+                playlist.extendVertically();
+            } else {
+            $("#playlist").scrollTop(currentTopScroll + (verticalScrollAmount() * scrollPercentage));
+            }
+
+            if (autoScrollingDown) {
+            setTimeout( () => scrollPlaylistDown(), scrollDelay);
+            }
+        }
+
         $("#playlist-autoscroller-right").mouseenter(function() {
             autoScrollingRight = true;
             scrollPlaylistRight();
             $("#playlist-autoscroller-left").show();
-        });
-
-        $("#playlist-autoscroller-right").mouseleave(function() {
+        }).mouseleave(function() {
             autoScrollingRight = false;
             scrollPercentage = 0.5;
-        });
-
-        $("#playlist-autoscroller-right").mousemove(function(e) {
+        }).mousemove(function(e) {
             let scrollerOffset = $("#playlist-autoscroller-right").offset();
             let distanceFromRight = (e.clientX - scrollerOffset.left);
             scrollPercentage = distanceFromRight / $("#playlist-autoscroller-right").width();
@@ -420,19 +548,42 @@ function playListFunctionalityEvents() {
             autoScrollingLeft = true;
             scrollPlaylistLeft();
             $("#playlist-autoscroller-right").show();
-        });
-
-        $("#playlist-autoscroller-left").mouseleave(function() {
+        }).mouseleave(function() {
             autoScrollingLeft = false;
             scrollPercentage = 0.5;
-        });
-
-        $("#playlist-autoscroller-left").mousemove(function(e) {
+        }).mousemove(function(e) {
             let scrollerOffset = $("#playlist-autoscroller-left").offset();
             let distanceFromLeft = ($("#playlist-autoscroller-left").width() - (e.clientX - scrollerOffset.left))
             scrollPercentage = distanceFromLeft / $("#playlist-autoscroller-left").width();
         });
 
+        $("#playlist-autoscroller-top").mouseenter(function() {
+            autoScrollingUp = true;
+            scrollPlaylistUp();
+            $("#playlist-autoscroller-bottom").show();
+        }).mouseleave(function() {
+            autoScrollingUp = false;
+            scrollPercentage = 0.5;
+        }).mousemove(function(e) {
+            let scrollerOffset = $("#playlist-autoscroller-top").offset();
+            let distanceFromBottom = ($("#playlist-autoscroller-top").height() - (e.clientY - scrollerOffset.top))
+            scrollPercentage = distanceFromBottom / $("#playlist-autoscroller-top").height();
+        });
+
+        $("#playlist-autoscroller-bottom").mouseenter(function() {
+            autoScrollingDown = true;
+            scrollPlaylistDown();
+            $("#playlist-autoscroller-top").show();
+        }).mouseleave(function() {
+            autoScrollingDown = false;
+            scrollPercentage = 0.5;
+        }).mousemove(function(e) {
+            let scrollerOffset = $("#playlist-autoscroller-bottom").offset();
+            let distanceFromTop = (e.clientY - scrollerOffset.top);
+            scrollPercentage = distanceFromTop / $("#playlist-autoscroller-bottom").height();
+        });
+
+        $("#playlist-autoscroller-top").hide();
         $("#playlist-autoscroller-left").hide();
     }();
 
@@ -463,6 +614,75 @@ function playListFunctionalityEvents() {
             }
             
         });
+
+        $("#playlist-save-button").click(function() {
+            let trackData = "[ " + playlist.exportJSON() + ", " + savedPatterns.exportJSON() + " ]";
+            $('#save-ui').toggle();
+            $('#save-ui textarea').val(trackData);
+        });
+
+        $("#playlist-open-button").click(function() {
+            $('#open-ui').toggle();
+        });
+
+        $('#playlist-load-button').click(function() {
+            let trackData = $('#open-ui textarea').val();
+            try {
+                let jsonData = JSON.parse(trackData);
+                let playlistData = jsonData[0];
+                let savedPatternsData = jsonData[1];
+                playlist.importJSON(playlistData);
+                savedPatterns.importJSON(savedPatternsData);
+                selectedPattern = undefined;
+            } catch (e) {
+                alert("Invalid JSON save");
+                return false;
+            }
+        });
+
+        $('#save-ui').hide();
+        $("#open-ui").hide();
+    }();
+
+    let renderLoop = function() {
+        $("#playlist").hover(function() {
+            playlist.render();
+        });
+    }();
+
+    let playlistKeyEvents = function() {
+        $("#playlist").keydown(function(event) {
+            let zoomAmount = 0.05;
+            let minZoom = 0.05;
+            let maxZoom = 3;
+
+            if (event.code == 'Minus') {
+                if (playlist.zoom > minZoom) {
+                    
+                    if (playlist.zoom - zoomAmount < minZoom) {
+                        playlist.zoom = minZoom;
+                    } else {
+                        playlist.zoom -= zoomAmount;
+                    }
+
+                    playlist.render();
+                }
+            } else if (event.code == 'Equal') {
+                
+                if (playlist.zoom < maxZoom) {
+                    
+                    if (playlist.zoom + zoomAmount > maxZoom) {
+                        playlist.zoom = maxZoom;
+                    } else {
+                        playlist.zoom += zoomAmount;
+                    }
+
+                    playlist.render();
+                }
+
+            }
+        });
+
     }();
 }
 

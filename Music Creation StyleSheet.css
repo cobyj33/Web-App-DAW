@@ -110,6 +110,7 @@ input {
     color: white;
     border-radius: 5px;
     overflow: hidden;
+    z-index: 5;
 }
 
 .windowSelectionButton:hover {
@@ -190,9 +191,44 @@ input {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-around;
-    align-items: center;
     list-style: none;
-    overflow-y: hidden;
+    overflow-y: visible;
+}
+
+#playListActionBar li {
+    display: block;
+    z-index: 6;
+}
+
+.action-bar-drop-down {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    overflow-y: visible;
+    background-color: black;
+    padding: 10px;
+    border: 2px solid white;
+    border-radius: 5px;
+    transition: max-width 0.25s, max-height 0.25s;
+    z-index: 99;
+}
+
+.action-bar-drop-down textarea {
+    width: 100px;
+    height: 100px;
+    font-size: 10px;
+    background: linear-gradient(to left, #222222, #888888);
+    box-shadow: 0 0 5px white;
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #222;
+    user-select: auto;
+}
+
+
+.action-bar-drop-down * {
+    margin-bottom: 10px;
 }
 
 .status-indicator {
@@ -274,19 +310,18 @@ input[type=number] {
   }
 
   .autoscroller {
+    position: absolute;
     background-color: black;
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: transparent;
-    opacity: 100%;
+    opacity: 0;
   }
 
   .autoscroller:hover {
-    transition: opacity 0.2s, background-color 0.2s;
+    transition: opacity 0.2s;
     opacity: 50%;
-    background-color: black;
   }
 
   .selected-pattern {

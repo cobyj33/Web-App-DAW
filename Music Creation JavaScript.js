@@ -131,12 +131,12 @@ $(document).ready(function() {
     $(this).css("z-index", "1000");
   });
 
-  let zIndex = 10;
+  let zIndex = 100;
 
   $(".window").on('mouseleave', function() {
     $(this).css("z-index", String(zIndex++));
     if (zIndex > 1000) {
-      zIndex = 10;
+      zIndex = 100;
       $(".window").css("z-index", "0");
       $(this).css("z-index", String(zIndex++));
     }

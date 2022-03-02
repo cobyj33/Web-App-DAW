@@ -42,6 +42,18 @@ var savedPatterns = {
         this.patterns.push(pattern);
         constructSavedPatterns();
     },
+
+    exportJSON: function() {
+        return JSON.stringify(this.patterns);
+    },
+
+    importJSON: function(patternJSON) { 
+        this.patterns = [];
+        patternJSON.forEach(pattern => {
+            let conversion = makePatternFromJSONObject(pattern);
+            this.addPattern(conversion);
+        });
+    },
 }
 
 
@@ -191,7 +203,7 @@ let getPatternOfElement = function(element) {
         }
     }
 
-let makePatternFromJSONObject = function(jsonObject) {
+var makePatternFromJSONObject = function(jsonObject) {
     let notes = [];
     jsonObject.notes.forEach(note => {
         notes.push(new Note(new Sound(note.sound.name, note.sound.source), note.tick));
@@ -200,7 +212,7 @@ let makePatternFromJSONObject = function(jsonObject) {
     pattern.name = jsonObject.name;
     console.log(pattern);
     return pattern;
-    }
+}
 
 $(window).on('load', function() {
     $("#saved-patterns-window").hide();

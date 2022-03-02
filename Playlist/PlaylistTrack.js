@@ -5,43 +5,13 @@ class PlaylistTrack {
         this.width = width;
         this.pattern = pattern.clone();
         this.moving = false;
-        console.log(this.pattern);
-        let canvas = document.createElement('canvas');
 
-        let canvasEvents = function() {
-            let mouseX = 0;
-            let mouseY = 0;
-            const infoDisplay = document.createElement('div');
-            infoDisplay.classList.add('canvas-info-display');
-            infoDisplay.innerText = pattern.name;
+        this.canvas = document.createElement('canvas');
+        let infoDisplay = document.createElement('div');
+        infoDisplay.classList.add('canvas-info-display');
+        infoDisplay.innerText = pattern.name;
 
-            function updateMouse(mouseEvent) {
-                mouseX = mouseEvent.clientX;
-                mouseY = mouseEvent.clientY;
-            }
-
-            $(canvas).mousemove(function(event){
-                updateMouse(event);
-                $(infoDisplay).css({
-                    'left': `${mouseX}`,
-                    'top': `${mouseY}`
-                })
-            });
-
-            $(canvas).mouseenter(function(){
-                console.log("mouse entered canvas");
-                if (!$(infoDisplay).is(":visible")) {
-                    $(document.body).append(infoDisplay);
-                }
-            });
-
-            $(canvas).mouseleave(function(){
-                $(infoDisplay).remove();
-            });
-        };
-
-        canvasEvents();
-        this.canvas = canvas;
+        this.infoDisplay = infoDisplay;
         this.render();
     }
 
@@ -76,12 +46,10 @@ class PlaylistTrack {
     render() {
         let current = this;
         this.canvas.width = this.width * $("#playlist-table tr td").width();
-        if (this.canvas.height / $("#playlist-table tr td").height() > 0.99) {
+        let canvasToTableRatio = this.canvas.height / $("#playlist-table tr td").height();
+        if (canvasToTableRatio > 0.99 || canvasToTableRatio < 0.80) {
             this.canvas.height = $("#playlist-table tr td").height();
         }
-
-        $('#playlist-table tr td').not(".selected").css('z-index', '0');
-        
 
         function isRenderedCorrectly() {
             if (typeof $(current.canvas).parent[0] == 'undefined') {
@@ -107,7 +75,6 @@ class PlaylistTrack {
                 return true;
             }
 
-
             return false;
         }
 
@@ -118,15 +85,11 @@ class PlaylistTrack {
             }
 
             let properPosition = $(`#playlist-table tr:nth-of-type(${current.row + 1}) td:nth-of-type(${current.col + 1}`);
-            properPosition.css({
-                'max-width': properPosition.width(),
-                'z-index': '1'
-            });
-
+            properPosition.addClass("canvas-holder");
             properPosition.append(current.canvas);
 
             if (current.col + current.width > playlist.cols) {
-                playlist.extend(current.width);
+                playlist.extendHorizontally(current.width);
             }
         }
 
@@ -134,6 +97,30 @@ class PlaylistTrack {
             this.erase();
             placeCanvas();
         }
+
+        let canvasEvents = function() {
+            function updateInfoDisplayPosition(mouseEvent) {
+                $(current.infoDisplay).css({
+                    'left': `${mouseEvent.clientX + 10}px`,
+                    'top': `${mouseEvent.clientY + 10}px`
+                });
+            }
+
+            $(current.canvas).off();
+            $(current.canvas).mousemove(function(event){
+                updateInfoDisplayPosition(event);
+            });
+
+            $(current.canvas).mouseenter(function(event){
+                $(document.body).append(current.infoDisplay);
+                updateInfoDisplayPosition(event);
+            });
+
+            $(current.canvas).mouseleave(function(){
+                $(current.infoDisplay).remove();
+            });
+        }();
+        
 
         this.drawCanvas();
     }
@@ -181,6 +168,7 @@ class PlaylistTrack {
             $(`#playlist-table tr:nth-of-type(${this.row + 1}) td:nth-of-type(${this.col + 1 + i}`).removeClass("selected");
         }
 
+        $(this.canvas).parent().removeClass("canvas-holder");
         $(this.canvas).css("position", "fixed");
         window.addEventListener('mouseup', () => this.moving = false);
         let current = this;
@@ -223,7 +211,9 @@ class PlaylistTrack {
     }
 
     erase() {
+        $(this.canvas).parent().removeClass("canvas-holder");
         $(this.canvas).remove();
+        $(this.infoDisplay).remove();
         for (let i = 0; i <  this.width; i++) {
             $(`#playlist-table tr:nth-of-type(${this.row + 1}) td:nth-of-type(${this.col + 1 + i}`).removeClass("selected");
         }
