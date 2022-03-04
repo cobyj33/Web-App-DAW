@@ -12,9 +12,8 @@
     <link rel="stylesheet" type="text/css" href="/Saved Patterns/savedPatterns.css">
     <link rel="stylesheet" type="text/css" href="/Playlist/playlist.css">
     <link rel="stylesheet" type="text/css" href="/Radial Menu/radialMenu.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FitText.js/1.2.0/jquery.fittext.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/Piano Rack/pianorack.css">
+    <script src="bundle.js"></script>
 </head>
 <body>
 
@@ -68,7 +67,7 @@
 
         <div id="windowSelection">
             <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
-            <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Roll </button>
+            <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Rack </button>
             <button class="windowSelectionButton" id="saved-patterns-selection-button"> Saved Patterns </button> 
         </div>
     </div>
@@ -121,9 +120,27 @@
         
     </div>
 
-    <div id="pianoRoll" class="window"> 
+    <div id="pianoRack" class="dragPane window"> 
 
+        <div class="closeBar dragSelector">
+          <h1 style="font-size: 10px; color: white; user-select: none; "> Piano Rack </h1>
+          <button type="button" class="closeButton"> X </button>
+        </div>
 
+        <div id="piano-rack-options-bar">
+
+        </div>
+          
+        <div id="piano-rack-holder">
+          <table id="piano-rack-edit-area">
+            
+          </table>
+        </div>
+  
+        <div class="bottomBar">
+          <button class="addSoundButton"> Add Sound Button </button>
+        </div>
+          
     </div>
 
     <div id="saved-patterns-window" class="window dragPane">
@@ -173,6 +190,8 @@
     <script src="dragPane.js"> </script>
     <script src="/Channel Rack/channelRack.js"></script>
     <script src="/Saved Patterns/savedPatterns.js"></script>
+    <script src="/Piano Rack/keyboardPiano.js"></script>
+    <script src="/Piano Rack/pianorack.js"></script>
     <script src="/Radial Menu/radialMenu.js"></script>
 </body>
 </html>

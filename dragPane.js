@@ -1,6 +1,5 @@
 function run() {
     var isMouseDown = false;
-    let draggingPane = null;
     let mouseX = 0;
     let mouseY = 0;
     let mouseXOffset = 0;

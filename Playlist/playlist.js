@@ -367,7 +367,7 @@ function constructPlayList() {
         playlistTable.append(currentRow);
     }
 
-
+    playlist.render();
 }
 
 function playListTableEvents() {
