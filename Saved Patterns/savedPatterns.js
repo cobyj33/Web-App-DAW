@@ -75,10 +75,12 @@ let constructSavedPatterns = function() {
                 visualizer.append(document.createElement("tr"));
                 let patternSounds = pattern.sounds;
                 for (let i = 0; i < patternSounds.length; i++) {
-                    $(visualizer).find("tr:nth-of-type(1)").append(document.createElement("td"));
+                    const soundLight = document.createElement('td');
+                    soundLight.classList.add(`sound-${patternSounds[i].name}`);
                     const sound_name = document.createElement("td");
                     sound_name.innerText = patternSounds[i].name;
                     sound_name.classList.add(`sound-${patternSounds[i].name}`);
+                    $(visualizer).find("tr:nth-of-type(1)").append(soundLight);
                     $(visualizer).find("tr:nth-of-type(2)").append(sound_name)
                 }
         }
@@ -135,7 +137,7 @@ let constructSavedPatterns = function() {
                 setTimeout(() => currentPattern.play(), getTickSpeed());
             });
 
-            $(".pattern-select-button").click(function() {
+            $(".pattern-select-button").on('click', function() {
                 $(".pattern-select-button").removeClass('selected-pattern');
                 if (_.isEqual(selectedPattern, getPatternOfElement(this))) {
                     selectedPattern = undefined;
@@ -147,6 +149,56 @@ let constructSavedPatterns = function() {
                     $("#current-selected-track").text(`Currently Selected: ${selectedPattern.name}`);
                 }
             });
+
+            function isSimilar(text, title) {
+                console.log(text, " ", title);
+                if (text.length > title.length) {
+                    return 0;
+                }
+
+                let similarityValuePerMatch = 1 / text.length;
+                let ranking = 0;
+                let textCharacters = {};
+                Array.from(text.toLowerCase()).forEach(char => {
+                    if (textCharacters.hasOwnProperty(char)) {
+                        textCharacters[char] += 1;
+                    } else {
+                        textCharacters[char] = 1;
+                    }
+                });
+
+                let titleCharacters = {};
+                Array.from(title.toLowerCase()).forEach(char => {
+                    if (titleCharacters.hasOwnProperty(char)) {
+                        titleCharacters[char] += 1;
+                    } else {
+                        titleCharacters[char] = 1;
+                    }
+                });
+
+                console.log(textCharacters);
+                console.log(titleCharacters);
+
+                Object.keys(textCharacters).forEach(key => {
+                    if (titleCharacters[key] >= 1 && textCharacters[key] <= titleCharacters[key]) {
+                        ranking += similarityValuePerMatch * textCharacters[key];
+                    }
+                });
+
+                console.log('ranking between ', text, ' and ', title, ': ', ranking);
+
+                return ranking;
+            }
+
+            $('#saved-patterns-search-bar').on('input', function() {
+                let searchInput = $(this).val();
+                let instances = $('#saved-patterns').find('.pattern-instance');
+                instances.show();
+
+                if (searchInput == "") { return; }
+                let omitted = instances.get().filter((instance) => { return isSimilar(searchInput, $(instance).find('.pattern-title').text()) < 0.5; });
+                omitted.forEach(instance => { console.log('omitted instance: ', instance); $(instance).hide(); } );
+            });
         }();
     }
 
@@ -155,38 +207,34 @@ let playPattern = function(pattern, patternInstance) {
             console.log("Cannot play pattern: Already playing");
             return;
         }
-        pattern.play();
 
         let currentVisualizer = $(patternInstance).find(".pattern-visualizer")[0];
-        let visualizingRow = $(currentVisualizer).find('tr:nth-of-type(1)');
+        // let visualizingRow = $(currentVisualizer).find('tr:nth-of-type(1)');
         let timeSlider = $(patternInstance).find(".pattern-time-manager input");
         let timeText = $(patternInstance).find(".pattern-time-manager p");
-        let startTime = Date.now();
-        let desiredTime = 0;
+        // let startTime = Date.now();
+        // let desiredTime = 0;
         let tickTime = getTickSpeed();
         let maxTick = $(patternInstance).find(".pattern-time-manager input").attr('max');
-        visualize();
-        function visualize() {
+        // visualize();
+        pattern.play();
+        Tone.Transport.scheduleRepeat((time) => {
             timeSlider.val(pattern.currentTick);
             timeText.text(`Tick ${pattern.currentTick} / ${maxTick}`);
             let currentNotes = [...pattern.currentlyPlaying];
             console.log(currentNotes);
-            $(visualizingRow).children().removeClass("visualizing");
+            $('.visualizing').removeClass("visualizing");
             
             for (let i = 0; i < currentNotes.length; i++) {
                 let soundName = currentNotes[i].sound.name;
                 let columnIndex = $(currentVisualizer).find(`.sound-${soundName}`).index();
-                $(visualizingRow).find(`td:nth-of-type(${columnIndex + 1})`).addClass("visualizing");
-            }  
+                $(currentVisualizer).find(`tr td:nth-of-type(${columnIndex + 1})`).addClass("visualizing");
+                }
+        }, tickTime / 1000);
 
-            if (pattern.playing) {
-                let diff = (Date.now() - startTime) - desiredTime;
-                desiredTime += tickTime;
-                window.setTimeout( () => visualize(), (tickTime - diff));
-            } else {
-                $(visualizingRow).children().removeClass("visualizing");
-            }
-        }
+        Tone.Transport.on("stop", function (time) {
+            $('.visualizing').removeClass("visualizing");
+        });
     };
 
 let getPatternOfElement = function(element) {
@@ -206,7 +254,7 @@ let getPatternOfElement = function(element) {
 var makePatternFromJSONObject = function(jsonObject) {
     let notes = [];
     jsonObject.notes.forEach(note => {
-        notes.push(new Note(new Sound(note.sound.name, note.sound.source), note.tick));
+        notes.push(new Note({sound: new Sound(note.sound.name, note.sound.source), tick: note.tick}));
     });
     let pattern = new Pattern(notes);
     pattern.name = jsonObject.name;
@@ -232,9 +280,9 @@ $(window).on('load', function() {
 let savedPatternsProgram = function() {
     $("#saved-patterns-window").hide();
     $(".pattern-edit-dropdown").hide();
-    $("#saved-patterns-close-button").click(toggleVisibility);
+    $("#saved-patterns-close-button").on('click', toggleVisibility);
     constructSavedPatterns();
     
 
-    $("#saved-patterns-selection-button").click(toggleVisibility);
+    $(".saved-patterns-selection-button").on('click', toggleVisibility);
 }

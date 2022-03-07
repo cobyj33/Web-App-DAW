@@ -4,15 +4,15 @@ const keyboardKeys = {
     "z": "C",
     "s": "C#",
     "x": "D",
-    "c": "D#",
-    "f": "E",
+    "d": "D#",
+    "c": "E",
     "v": "F",
     "g": "F#",
     "b": "G",
-    "n": "G#",
-    "j": "A",
-    "m": "A#",
-    "k": "B",
+    "h": "G#",
+    "n": "A",
+    "j": "A#",
+    "m": "B",
 
     isKey: function(key) {
         if (Object.keys(this).includes(key)) {
@@ -36,23 +36,62 @@ $(window).on('load', function() {
         console.log(key);
         if (keyboardKeys.isDigit(key)) {
             keyboardOctave = parseInt(key);
-        } else if (keyboardKeys.isKey(key)) {
+        }
+        
+        if (keyboardKeys.isKey(key)) {
+            
+            if (pianoRack.recording()) {
+                let note = new Note({
+                    sound: pianoRack.sound,
+                    freq: keyboardKeys[key],
+                });
+            }
+
+
+            let released = false;
+            window.addEventListener('keyup', checkQuickRelease)
+            let urls = {};
+            urls[`${pianoRack.sound.defaultFrequency}`] = pianoRack.sound.source;
+            function checkQuickRelease(event) {
+                if (event.key == key)
+                    released = true;
+            }
+
             const sampler = new Tone.Sampler({
-                urls: {
-                    C4: "../Sounds/kick.mp3"
-                },
+                urls,
                 onload: function() {
                     console.log('sound loaded');
-                    sampler.triggerAttackRelease(keyboardKeys[key] + keyboardOctave, 0.5)
+                    if (released) {
+                        sampler.triggerAttackRelease(keyboardKeys[key] + keyboardOctave, 0.1);
+                    } else {
+                        window.removeEventListener('keyup', checkQuickRelease);
+                        sampler.triggerAttack(keyboardKeys[key] + keyboardOctave);
+
+                        function checkRelease(event) {
+                            if (event.key == key) {
+                                console.log('released');
+                                sampler.triggerRelease();
+                                window.removeEventListener('keyup', checkRelease);
+                            }
+                        }
+                    
+                        window.addEventListener('keyup', checkRelease);
+                    }
                 },
             }).toDestination();
+
+            pianoRack.highlight(keyboardKeys[key] + keyboardOctave);
         }
     };
 
-    $(window).on('keypress', function(event) {
-        if (keyboardPianoEnabled) {
+    window.addEventListener('keypress', function(event) {
+        if (keyboardPianoEnabled && !event.repeat)
             keyboardPiano(event.key)
-        }
+    });
+
+    $(window).on('keyup', function(event) {
+        if (keyboardPianoEnabled && keyboardKeys.isKey(event.key))
+            pianoRack.unhighlight(keyboardKeys[event.key] + keyboardOctave);
     });
 
 });

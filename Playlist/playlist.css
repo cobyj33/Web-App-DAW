@@ -17,7 +17,8 @@
 #playlist-table {
     background-color: white;
     position: relative;
-    border-collapse:collapse;
+    border-collapse:separate;
+    border-spacing: 1px;
 }
 
 #playlist-table tr {

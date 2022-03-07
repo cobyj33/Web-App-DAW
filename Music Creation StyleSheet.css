@@ -12,6 +12,7 @@ html, body {
     user-select: none;
     color: white;
     text-align: center;
+    content-visibility: auto;
 }
 
 input {

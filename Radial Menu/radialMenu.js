@@ -24,7 +24,6 @@ function onload() {
         if (nodes.length == 0 ) {
             return;
         }
-        console.log(nodes);
 
         let increment = 100 / nodes.length;
 
@@ -55,12 +54,7 @@ function onload() {
     
     function openRadialMenu() {
         if (!isOpen) {
-            console.log("radial menu opened");
             isOpen = true;
-
-            console.log(mouseX);
-            console.log(mouseY);
-
             $("#radial-menu").css( {
                 "width": "200px",
                 "height": "200px",
@@ -114,7 +108,7 @@ function onload() {
             "margin": "",
         });
 
-        let quickSelectLoad = function() {
+        let openQuickSelect = function() {
             let quickSelectMenu = document.getElementById("quick-select");
             
             while (quickSelectMenu.firstChild) {
@@ -142,8 +136,9 @@ function onload() {
             });
         };
 
+
         if ($(selection).find("#quick-select").length > 0) {
-            quickSelectLoad();
+            openQuickSelect();
         }
     }
 

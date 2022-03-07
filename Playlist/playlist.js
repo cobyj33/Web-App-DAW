@@ -71,14 +71,19 @@ playlist = {
             let notes = []
             this.placedTracks.forEach(track => {
                 track.pattern.notes.forEach(note => {
-                    notes.push(new Note(note.sound, note.tick + track.startingTick));
+                    const newNote = note.clone();
+                    newNote.tick = note.tick + track.startingTick;
+                    notes.push(newNote);
                 });
             });
+
+            console.log('notes loaded');
             return notes;
         },
 
         get length() {
-            return Math.max(...(this.notes.map(note => note.tick)));
+            const length = Math.max(...this.placedTracks.flatMap(track => track.pattern.notes.map(note => note.tick + track.startingTick)));
+            return length;
         },
 
         set time(time) {
@@ -164,17 +169,30 @@ playlist = {
                 return;
             }
             this.playing = true;
+            Tone.Transport.cancel();
+            Tone.Transport.seconds = 0;
             this.fit();
             
             let queue = this.createQueue();
             console.log(queue);
-            let startTime = audioContext.currentTime;
             let tickTime = getTickSpeed();
             $("#timer-line").css('left', (this.currentTick - 1) * $("#playlist-table tr td").width() + "px");
 
+            let noteInfo = [];
             queue.forEach(note => {
-                note.play(startTime + ((note.tick - this.currentTick) * tickTime / 1000));
+            noteInfo.push({
+                time: note.timeInSeconds - ticksToSeconds(this.currentTick),
+                note: note
+            })
             });
+
+            const track = new Tone.Part(function(time, values) {
+            values.note.playNote();
+            if (queue.length != 0) {
+                queue.shift();
+            }
+            }, noteInfo).start(0);
+            Tone.Transport.start();
 
             let end = function() {
                 let trackTime = queue[queue.length - 1].tick * tickTime - (playlist.currentTick * tickTime);
@@ -183,7 +201,7 @@ playlist = {
                 function handle() {
                     if (Date.now() < predictedEndTime) {
                         setTimeout(handle, predictedEndTime - Date.now());
-                    } else if (scheduledBuffers.length == 0) {
+                    } else if (playlist.currentTick >= playlist.length) {
                         if (playlist.playing) {
                             playlist.stop();
                             if (playlist.looped) {
@@ -218,7 +236,7 @@ playlist = {
         },
 
         stop: function() {
-            window.stopPlayback();
+            Tone.Transport.cancel();
             this.playing = false;
             this.render();
         },
@@ -289,35 +307,20 @@ playlist = {
         },
 
         fit: function() {
-            let fittedColumnCount = this.length;
-            let fittedRowCount = Math.max(...(this.placedTracks.map(track => track.row)));
-
-            if (fittedRowCount < minRows) {
-                fittedRowCount = minRows;
-            }
-
-            if (fittedColumnCount < minCols) {
-                fittedColumnCount = minCols;
-            }
-
+            let fittedColumnCount = Math.max(minCols, this.length);
+            let fittedRowCount = Math.max(...(this.placedTracks.map(track => track.row)), minRows);
             let rowsToDelete = this.rows - fittedRowCount;
             let columnsToDelete = this.cols - fittedColumnCount;
-
-            console.log('rows to delete: ', rowsToDelete);
-            console.log('cols to delete: ', columnsToDelete);
 
             for (let i = 0; i < rowsToDelete; i++) {
                 $("#playlist-table tr:last").remove();
             }
-
             for (let i = 0; i < columnsToDelete; i++) {
                 $("#playlist-table tr").find("td:last").remove();
             }
-
             if ($('#playlist').scrollLeft() > $('#playlist')[0].scrollWidth) {
                 $('#playlist').scrollLeft(0);
             }
-
             if ($('#playlist').scrollTop() > $('#playlist')[0].scrollHeight) {
                 $('#playlist').scrollTop(0);
             }
@@ -372,10 +375,17 @@ function constructPlayList() {
 
 function playListTableEvents() {
     $('#playlist-table *').off();
-    $("#playlist-table tr td").mousedown(function(event) {
+    $("#playlist-table tr td").on('mousedown', function(event) {
         if (selectedPattern == undefined) {
             return;
+        } else if (playlist.selectedTrack) {
+            if (playlist.selectedTrack.moving) {
+                console.log('moving track');
+                return;
+            }
         }
+
+
         let row = $(this).parent().index();
         let col = $(this).index();
         let width = selectedPattern.patternLength;
@@ -588,7 +598,7 @@ function playListFunctionalityEvents() {
     }();
 
     let toolBarButtonEvents = function() {
-        $("#playlist-play-button").click( function() {
+        $("#playlist-play-button").on('click',  function() {
             if (playlist.playing) {
                 playlist.stop();
             } else {
@@ -596,7 +606,7 @@ function playListFunctionalityEvents() {
             }
         });
 
-        $("#playlist-loop-button").click( function() {
+        $("#playlist-loop-button").on('click',  function() {
             if (playlist.looped) {
                 $(this).removeClass('on');
                 playlist.looped = false;
@@ -606,7 +616,7 @@ function playListFunctionalityEvents() {
             }
         });
 
-        $("#playlist-restart-button").click( function() {
+        $("#playlist-restart-button").on('click',  function() {
             if (playlist.playing) {
                 playlist.restart();
             } else {
@@ -615,17 +625,17 @@ function playListFunctionalityEvents() {
             
         });
 
-        $("#playlist-save-button").click(function() {
+        $("#playlist-save-button").on('click', function() {
             let trackData = "[ " + playlist.exportJSON() + ", " + savedPatterns.exportJSON() + " ]";
             $('#save-ui').toggle();
             $('#save-ui textarea').val(trackData);
         });
 
-        $("#playlist-open-button").click(function() {
+        $("#playlist-open-button").on('click', function() {
             $('#open-ui').toggle();
         });
 
-        $('#playlist-load-button').click(function() {
+        $('#playlist-load-button').on('click', function() {
             let trackData = $('#open-ui textarea').val();
             try {
                 let jsonData = JSON.parse(trackData);

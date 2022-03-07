@@ -45,7 +45,12 @@ class PlaylistTrack {
 
     render() {
         let current = this;
-        this.canvas.width = this.width * $("#playlist-table tr td").width();
+        this.canvas.width = this.width * $("#playlist-table tr td").outerWidth();
+        if ($(this.canvas).parent().length > 1) {
+            console.log('using the long equation');
+            this.canvas.width = $(`#pianoRack tr td:nth-of-type(${$(this.canvas).parent().index() + this.width + 1})`).position().left - $(this.canvas).parent().position().left + $('#pianoRack tr td').outerWidth();
+        }
+        // this.canvas.width = $(`#pianoRack tr td:nth-of-type(${$(this.canvas).parent().index() + this.width})`).position().left - $(this.canvas).parent().position().left + $('#pianoRack tr td').outerWidth();
         let canvasToTableRatio = this.canvas.height / $("#playlist-table tr td").height();
         if (canvasToTableRatio > 0.99 || canvasToTableRatio < 0.80) {
             this.canvas.height = $("#playlist-table tr td").height();
@@ -93,7 +98,7 @@ class PlaylistTrack {
             }
         }
 
-        if (!isRenderedCorrectly()) {
+        if (!isRenderedCorrectly() && !this.moving) {
             this.erase();
             placeCanvas();
         }
@@ -107,16 +112,16 @@ class PlaylistTrack {
             }
 
             $(current.canvas).off();
-            $(current.canvas).mousemove(function(event){
+            $(current.canvas).on('mousemove', function(event){
                 updateInfoDisplayPosition(event);
             });
 
-            $(current.canvas).mouseenter(function(event){
+            $(current.canvas).on('mouseenter', function(event){
                 $(document.body).append(current.infoDisplay);
                 updateInfoDisplayPosition(event);
             });
 
-            $(current.canvas).mouseleave(function(){
+            $(current.canvas).on('mouseleave', function(){
                 $(current.infoDisplay).remove();
             });
         }();
@@ -177,7 +182,7 @@ class PlaylistTrack {
         let mouseY = 0;
         let lastVisitedCol = $(this.canvas).parent()[0];
 
-        $('#playlist-table tr td').mouseenter(function() {
+        $('#playlist-table tr td').on('mouseenter', function() {
             lastVisitedCol = this;
         });
 

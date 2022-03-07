@@ -1,7 +1,7 @@
 const selectionColor = "rgb(255, 255, 255)";
 let columnSize = 10; //pixels
 
-function program() {
+function channelRackProgram() {
     $("#channelRack").hide();
 
     function getColumnSize() {
@@ -39,9 +39,9 @@ function program() {
         this.sounds.push(new Sound(soundName, src))
       },
 
-      selectArea: function({sound, tick}) {
-        let newNote = new Note(sound, tick);
-        newNote.play();
+      selectArea: function(note) {
+        let newNote = new Note(note);
+        newNote.playImmediately();
         this.currentTick = 1;
         this.notes.push(newNote);
       },
@@ -97,6 +97,8 @@ function program() {
         if (this.playing || this.notes.length == 0) {
           return;
         }
+        Tone.Transport.cancel();
+        Tone.Transport.seconds = 0;
         this.playing = true;
         let queue = [...this.notes].sort((a, b) => a.tick - b.tick)
         queue = queue.filter((note) => { return note.tick >= this.currentTick} );
@@ -105,6 +107,22 @@ function program() {
 
         let startTime = Date.now();
         let desiredTime = 0;
+
+        let noteInfo = [];
+        queue.forEach(note => {
+          noteInfo.push({
+            time: note.timeInSeconds,
+            note: note
+          })
+        });
+
+        const track = new Tone.Part(function(time, values) {
+          values.note.playNote();
+          if (queue.length != 0) {
+            queue.shift();
+          }
+        }, noteInfo).start(0);
+        Tone.Transport.start();
         playbackLoop();
 
         function showPlayLine(cell) {
@@ -145,16 +163,7 @@ function program() {
             }
           }
 
-          while (queue[0].tick == currentTick) {
-            queue[0].play();
-            queue.shift();
-            if (queue.length == 0) {
-              break;
-            }
-          }
-
           let diff = (Date.now() - startTime) - desiredTime;
-          console.log(`diff: ${diff}`);
           channelRack.currentTick++;
           desiredTime += tickTime;
           window.setTimeout( () => playbackLoop(), (tickTime - diff));
@@ -180,10 +189,7 @@ function program() {
         this.beatsOnRack += 1;
         const column = document.createElement("td");
         column.classList.add("endOfRack");
-        $("#channelRack .main table tr .endOfRack").each(function() {
-          this.classList.remove("endOfRack");
-        });
-
+        $("#channelRack .main table tr .endOfRack").removeClass('endOfRack');
         $(column).css("min-width", `${getColumnSize()}px`);
         $("#channelRack .main table tr").each( function() {
           for (let i = 0; i < 4; i++) {
@@ -199,7 +205,7 @@ function program() {
     }
 
     function createNoteFromLocation(row, col) {
-      return new Note(channelRack.sounds[row], col);
+      return new Note({sound: channelRack.sounds[row], tick: col});
     }
     
     function appendSound() {
@@ -208,13 +214,13 @@ function program() {
   
     function constructChannelRack() {
       $("#channelRack").toggle();
+      if ( !$("#channelRack").is(":visible")) { return; }
       const mainArea = document.querySelector("#channelRack .main");
       const table = document.createElement("table");
       const tablerow = document.createElement("tr");
       const tablecol = document.createElement("td");
       
       $(mainArea).find("table").remove();
-
       columnSize = getColumnSize();
   
       for (let row = 0; row < channelRack.sounds.length; row++) {
@@ -278,7 +284,7 @@ function program() {
     function channelRackEvents() {
 
         $("#channelRack .main *").off();
-        $("#channelRack .main table tr td:nth-of-type(1)").mousedown(function() {
+        $("#channelRack .main table tr td:nth-of-type(1)").on('mousedown', function() {
           if ($(this).find("input").length > 0) {
             return;
           }
@@ -324,7 +330,7 @@ function program() {
         }
       } 
       
-      $("#channelRack .main table tr td").mousedown(function() {
+      $("#channelRack .main table tr td").on('mousedown', function() {
         mouseIsDown = true;
         if ($(this).css("background-color") == "rgb(255, 255, 255)") {
           erasing = true;
@@ -332,7 +338,7 @@ function program() {
         channelRackInput(this);
       });
 
-      $("#channelRack .main table tr td").mouseenter(function() {
+      $("#channelRack .main table tr td").on('mouseenter', function() {
         if (mouseIsDown) {
           channelRackInput(this);
         }
@@ -342,23 +348,21 @@ function program() {
         }
       });
 
-      $("#channelRack .main").mouseleave(function() {
+      $("#channelRack .main").on('mouseleave', function() {
         mouseIsDown = false;
         erasing = false;
       });
 
 
       //Auto Scrolling Code 
-      let autoScroller = function buildAutoScroller(){
+      let autoScroller = function(){
         let scrollPercentage = 0.5;
-
         let autoScrollingLeft = false;
         let autoScrollingRight = false;
-        let scrollDelay = 50;
-        let scrollAmount = 10; //px
+        const scrollDelay = 50;
+        const scrollAmount = 10; //px
 
         function scrollChannelRackLeft() {
-          console.log("scroll percentage: " + scrollPercentage);
           let currentLeftScroll = $("#channelRack .main").scrollLeft();
           if (currentLeftScroll - scrollAmount <= 0) {
             $("#channelRack .main").scrollLeft(0);
@@ -374,7 +378,6 @@ function program() {
         }
 
         function scrollChannelRackRight() {
-          console.log("scroll percentage: " + scrollPercentage);
           let currentLeftScroll = $("#channelRack .main").scrollLeft();
           let maxScrollRight = $("#channelRack .main")[0].scrollWidth - $("#channelRack .main").width();
           if (currentLeftScroll + scrollAmount >= maxScrollRight) {
@@ -388,35 +391,27 @@ function program() {
           }
         }
 
-        $("#channel-rack-autoscroller-right").mouseenter(function() {
+        $("#channel-rack-autoscroller-right").on('mouseenter', function() {
           autoScrollingRight = true;
           scrollChannelRackRight();
           $("#channel-rack-autoscroller-left").show();
-        });
-
-        $("#channel-rack-autoscroller-right").mouseleave(function() {
+        }).on('mouseleave', function() {
           autoScrollingRight = false;
           scrollPercentage = 0.5;
-        });
-
-        $("#channel-rack-autoscroller-right").mousemove(function(e) {
+        }).on('mousemove', function(e) {
           let scrollerOffset = $("#channel-rack-autoscroller-right").offset();
           let distanceFromRight = (e.clientX - scrollerOffset.left);
           scrollPercentage = distanceFromRight / $("#channel-rack-autoscroller-right").width();
         });
 
-        $("#channel-rack-autoscroller-left").mouseenter(function() {
+        $("#channel-rack-autoscroller-left").on('mouseenter', function() {
           autoScrollingLeft = true;
           scrollChannelRackLeft();
           $("#channel-rack-autoscroller-right").show();
-        });
-
-        $("#channel-rack-autoscroller-left").mouseleave(function() {
+        }).on('mouseleave', function() {
           autoScrollingLeft = false;
           scrollPercentage = 0.5;
-        });
-
-        $("#channel-rack-autoscroller-left").mousemove(function(e) {
+        }).on('mousemove', function(e) {
           let scrollerOffset = $("#channel-rack-autoscroller-left").offset();
           let distanceFromLeft = ($("#channel-rack-autoscroller-left").width() - (e.clientX - scrollerOffset.left))
           scrollPercentage = distanceFromLeft / $("#channel-rack-autoscroller-left").width();
@@ -424,7 +419,7 @@ function program() {
       }();
 
 
-      $("#channelRack .bottomBar .addSoundButton").click(function() {
+      $("#channelRack .bottomBar .addSoundButton").on('click', function() {
 
       });
     }
@@ -451,7 +446,7 @@ function program() {
 
     function initializeButtonEvents() {
       $("#channelRack button").off();
-      $("#channelRack-loopButton").click(function() {
+      $("#channelRack-loopButton").on('click', function() {
         $(this).blur();
         channelRack.looping = !channelRack.looping;
         if (channelRack.looping) {
@@ -461,28 +456,28 @@ function program() {
         }
       });
 
-      $('#channelRack_playButton').click(function() {
+      $('#channelRack_playButton').on('click', function() {
         channelRackPlayAction();
       });
 
-      $('#channelRack_stopButton').click(function() {
+      $('#channelRack_stopButton').on('click', function() {
         channelRack.playing = false;
         window.setTimeout(() => channelRack.currentTick = 1, getTickSpeed());
       });
 
-      $('#channelRack_resetButton').click(function() {
+      $('#channelRack_resetButton').on('click', function() {
         channelRack.restart();
       });
 
-      $('#channelRack-saveButton').click(function() {
+      $('#channelRack-saveButton').on('click', function() {
         if (channelRack.getPattern()) {
           savedPatterns.addPattern(channelRack.getPattern());
         }
       });
 
-      $("#channelRack .bottomBar .addSoundButton").click(() => appendSound());
+      $("#channelRack .bottomBar .addSoundButton").on('click', () => appendSound());
 
-      $("#channelRack .topBar .closeButton").click(function() {
+      $("#channelRack .topBar .closeButton").on('click', function() {
         $("#channelRack").hide();
       });
     }
@@ -492,14 +487,17 @@ function program() {
     initializeButtonEvents();
     $("#channelRack").hide();
 
-    $("#channel-rack-selection-button").click(function() {
-        $(this).blur();
-        constructChannelRack();
-        channelRackEvents();
-        initializeButtonEvents();
+    $(".channel-rack-selection-button").on('click', function() {
+        $(this).trigger('blur');
+        $("#channelRack").toggle();
     });
 
-    
+    function openChannelRack() {
+      constructChannelRack();
+      channelRackEvents();
+      initializeButtonEvents();
+    }
+    this.openChannelRack = openChannelRack;
 }
   
-$(window).on('load', program);
+$(window).on('load', channelRackProgram);

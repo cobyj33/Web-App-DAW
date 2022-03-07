@@ -1,17 +1,22 @@
-var bpm = 128;
-var timeSignature = "4x4";
+// Tone.context.resume()
+Tone.Transport.bpm.value = 128;
 var selectedPattern = undefined;
-var currentTime = 0; //in Milliseconds
+var loadedSounds = {
+  get sounds() {
+    return Object.keys(this).map(key => this[key]);
+  }
+};
 
-function changeCurrentTimeToText() {
-  //format 00:00:00 minutes:seconds:milliseconds
-  let newTime = currentTime
-  let minutes = newTime / 1000 / 60;
-  let seconds = newTime - (minutes * 1000 * 60) / 1000;
-  let milliseconds = newTime - (minutes * 1000 * 60) - (seconds * 1000);
-
-  return `${minutes}:${seconds}:${milliseconds}`;
+window.loadSound = function(soundObj) {
+  loadedSounds[`${soundObj.name}`] = soundObj;
 }
+
+loadSound(new Sound("Kick", "Sounds/kick.mp3"));
+loadSound(new Sound("Clap", "Sounds/clap.mp3"));
+loadSound(new Sound("Snare", "Sounds/snare.mp3"));
+loadSound(new Sound("HiHat", "Sounds/hihat.mp3"));
+
+// var loadedSounds = [];
 
 window.createElementWithClasses = function(elementTag, classes) {
   const element = document.createElement(elementTag);
@@ -20,7 +25,7 @@ window.createElementWithClasses = function(elementTag, classes) {
 }
 
 function getBeatSpeed() {
-    let beatsPerMillisecond = bpm / 60 / 1000;
+    let beatsPerMillisecond = Tone.Transport.bpm.value / 60 / 1000;
     return 1 / beatsPerMillisecond;
 }
 
@@ -28,98 +33,39 @@ function getTickSpeed() {
   return getBeatSpeed() / 4;
 }
 
+function ticksToSeconds(tick) {
+  return tick * getTickSpeed() / 1000;
+}
 
+window.getSample = function(url, defaultNote) {
+  let note = 'C4';
+  if (defaultNote) {
+      note = defaultNote;
+  }
+  console.log(note);
+  urls = {}
+  urls[`${note}`] = url;
 
-// window.createSound = function(name, source) {
-//     return {
-//       name: name,
-//       source: source
-//     }
-//   }
+  return new Tone.Sampler({urls});
+};
 
-//  window.createNote = function(soundObject, tick) {
-//     note = {
-//       sound: soundObject,
-//       tick: tick,
-//       play: function() {
-//         if (this.sound.source == "")
-//             return;
-//         let currentSound = new Audio(this.sound.source);
-//         console.log(`Playing sound ${this.sound.name}`);
-//         currentSound.play();
-//       }
-//     }
-//     return note;
-//   }
-
-//   window.createPattern = function(notes) {
-//     pattern = {
-//       notes: [...notes],
-//       startingBeat: 0,
-//       currentTick: 1,
-//       get patternLength() {
-//         let max = 0;
-//         for (let i = 0; i < notes.length; i++) {
-//           if (notes[i].tick > max)
-//             max = notes[i].tick;
-//         }
-
-//         if (max % 4 != 0) {
-//           max += 4 - (max % 4);
-//         }
-//         return max;
-//       },
-
-//       playFromStart: function() {
-//         this.currentTick = 0;
-//         this.play();
-//       },
-
-//       play: function() {
-//         let tickTime = getTickSpeed();
-//         let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
-//         let patternLength = this.patternLength;
-//         playbackLoop();
-
-//         function playbackLoop() {
-//           if (pattern.currentTick > patternLength || queue.length == 0)
-//             return;
-          
-//           while (queue[0].tick == pattern.currentTick) {
-//             console.log("playing sound");
-//             queue[0].play();
-//             queue.shift();
-//             if (queue.length == 0) {
-//               break;
-//             }
-//           }
-          
-//           pattern.currentTick++;
-//           window.setTimeout( () => playbackLoop(), tickTime);
-//         }
-//       }
-//     }
-
-//     return pattern;
-//   }
-
-$(document).ready(function() {
+$(document).on('ready', function() {
   $("*").attr("draggable", "false");
 
-  document.getElementById("bpm-display").value = bpm;
-  document.getElementById("current-time-display").value = currentTime;
+  document.getElementById("bpm-display").value = Tone.Transport.bpm.value;
+  document.getElementById("current-time-display").value = 0;
 
   $("#bpm-display").on('input', function() {
     if (Number($(this).val()) > 10) {
       $(this).css("background", "linear-gradient(to left, black, green)");
-      bpm = Number($(this).val());
+      Tone.Transport.bpm.value = Number($(this).val());
     } else {
       $(this).css("background", "linear-gradient(to left, black, red)");
     }
   });
 
-  $("#bpm-display").focusout(function() {
-    $(this).val(bpm);
+  $("#bpm-display").on('focusout', function() {
+    $(this).val(Tone.Transport.bpm.value);
     $(this).css("background", "linear-gradient(to left, black, green)");
   });
 

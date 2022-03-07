@@ -7,6 +7,7 @@
     <title> JJ STUDIO </title>
     <link rel="shortcut icon" href="#">
     <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="pageLoad.css">
     <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
     <link rel="stylesheet" type="text/css" href="/Channel Rack/channelRack.css">
     <link rel="stylesheet" type="text/css" href="/Saved Patterns/savedPatterns.css">
@@ -66,9 +67,9 @@
         </ul>
 
         <div id="windowSelection">
-            <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
-            <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Rack </button>
-            <button class="windowSelectionButton" id="saved-patterns-selection-button"> Saved Patterns </button> 
+            <button class="windowSelectionButton channel-rack-selection-button"> Channel Rack </button>
+            <button class="windowSelectionButton piano-rack-selection-button"> Piano Rack </button>
+            <button class="windowSelectionButton saved-patterns-selection-button"> Saved Patterns </button> 
         </div>
     </div>
 
@@ -122,13 +123,20 @@
 
     <div id="pianoRack" class="dragPane window"> 
 
-        <div class="closeBar dragSelector">
+        <div class="top-bar dragSelector">
           <h1 style="font-size: 10px; color: white; user-select: none; "> Piano Rack </h1>
+          <button type="button" id="piano-rack-loop-button" class="status-indicator"> L </button>
+          <button type="button" id="piano-rack-play-button" class="status-indicator"> ▶ </button>
+          <button type="button" id="piano-rack-stop-button" class="status-indicator"> ■ </button>
+          <button type="button" id="piano-rack-reset-button" class="status-indicator"> ↺ </button>
+          <button type="button" id="piano-rack-save-button" class="status-indicator"> Save </button>
+          <button type="button" id="piano-rack-record-button" class="status-indicator"> ● </button>
+
           <button type="button" class="closeButton"> X </button>
         </div>
 
         <div id="piano-rack-options-bar">
-
+            
         </div>
           
         <div id="piano-rack-holder">
@@ -136,9 +144,27 @@
             
           </table>
         </div>
+
+        <div id="piano-rack-velocity-display">
+
+        </div>
   
         <div class="bottomBar">
           <button class="addSoundButton"> Add Sound Button </button>
+          <div class="input-container">
+            <h3 class="input-info" style="margin: 0;"> Pattern Name: </h3>
+            <input type="text" class="user-input" id="piano-rack-name-input" placeholder="">
+          </div>
+
+          <div id="loaded-sounds-popup-menu-holder"> 
+              <button id="piano-rack-loaded-sounds-button">
+                  Loaded Sound: 
+              </button>
+              <div id="piano-rack-loaded-sounds-popup-menu">
+
+              </div>
+          </div>
+
         </div>
           
     </div>
@@ -164,12 +190,14 @@
     <div id="radial-menu">
         <div class="radial-menu-selection">
             <div class="content" id="quick-select">
-                
+                <!-- dynamically updated with javascript -->
             </div>
         </div>
         <div class="radial-menu-selection"> 
-            <div class="content">
-                W.I.P
+            <div class="content" id="window-select">
+                <button class="windowSelectionButton channel-rack-selection-button"> Channel Rack </button>
+                <button class="windowSelectionButton piano-rack-selection-button"> Piano Rack </button>
+                <button class="windowSelectionButton saved-patterns-selection-button"> Saved Patterns </button> 
             </div>
         </div>
         <div class="radial-menu-selection"> 
@@ -179,10 +207,15 @@
         </div>
     </div>
 
+    <div id="page-load">
+        <h1> JJ STUDIO </h1>
+        <div id='load-progress'> <div id='load-percentage'> </div> </div>
+        <h3 id="load-prompt"> Waiting on Browser Window... </h3>
+    </div>
     <!-- <canvas id="canvas"> </canvas> -->
 
 
-    <script src="Web Audio API Test.js"></script>
+    <script src="pageLoad.js"></script>
     <script src="classes.js"></script>
     <script src="Music%20Creation%20JavaScript.js"> </script>
     <script src="/Playlist/PlaylistTrack.js"></script>

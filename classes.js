@@ -1,29 +1,77 @@
+
 class Sound {
-    constructor(name, source) {
+    constructor(name, source, defaultFrequency) {
       this.name = name;
       this.source = source;
+      this.defaultFrequency = defaultFrequency ? defaultFrequency : "C4";
     }
   }
   
   class Note {
-    constructor(sound, tick) {
+    //sound and tick are required, length and freq are optional
+    constructor({sound, tick, length, freq, velocity, sample}) {
       this.sound = sound;
       this.tick = tick;
+      this.length = length ? length : 1;
+      this.freq = freq ? freq : this.sound.defaultFrequency;
+      this.velocity = velocity ? velocity : 1;
+      this.sample = sample ? sample : this.createSample().toDestination();
     }
-  
-    play(time) {
-      if (this.sound.source == "")
-          return;
-      let buffer = window.createBuffer(this.sound.source, this.sound.name);
-      if (time) {
-        window.playSound(buffer, time);
-      } else {
-        window.playSound(buffer);
+
+    createSample() {
+      let urls = {};
+      urls[this.sound.defaultFrequency] = this.sound.source;
+      const sample = new Tone.Sampler({urls});
+      return sample;
+    }
+
+    get timeInSeconds() {
+      return ticksToSeconds(this.tick - 1);
+    }
+
+    get endInSeconds() {
+      return this.timeInSeconds + this.lengthInSeconds;
+    }
+
+    get lengthInSeconds() {
+      return ticksToSeconds(this.length);
+    }
+
+    playNote() {
+      if (this.sample.loaded) {
+        this.sample.triggerAttackRelease(this.freq, this.lengthInSeconds);
       }
     }
 
+    playImmediately() {
+      let urls = {};
+      urls[this.sound.defaultFrequency] = this.sound.source;
+      const sample = new Tone.Sampler({urls, onload: () => {
+        console.log('sample loaded');
+        sample.triggerAttackRelease(this.freq, this.lengthInSeconds);
+      }}).toDestination();
+    }
+
     clone() {
-      return new Note(this.sound, this.tick);
+      return new Note(this);
+    }
+
+    overlaps(note) {
+      if (note.freq == this.freq && ((this.tick <= note.tick && this.tick + this.length > note.tick) || (note.tick <= this.tick && note.tick + note.length > this.tick))) {
+        return true;
+      }
+      return false;
+    }
+
+    static equals(note, note2) {
+      const {sound, tick, length, freq, velocity} = note;
+      const {sound: sound2, tick: tick2, length: length2, freq: freq2, velocity: velocity2} = note2;
+      if (sound.source == sound2.source && tick == tick2 && length == length2 && freq == freq2 && velocity == velocity2) {
+        console.log('EQUALS');
+        return true;
+      }
+      console.log('not equals');
+      return false;
     }
   }
   
@@ -95,170 +143,43 @@ class Sound {
     pause() {
       this.playing = false;
       this.currentlyPlaying = [];
+      Tone.Transport.pause();
     }
   
     play() {
       this.playing = true;
+      Tone.Transport.cancel();
       let tickTime = getTickSpeed();
       let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
       queue = queue.filter( note => note.tick >= this.currentTick);
       let pattern = this;
-      let startTime = audioContext.currentTime;
 
-      queue.forEach(note => {
-        note.play(startTime + (note.tick * tickTime / 1000));
-      });
+      let noteInfo = [];
+        queue.forEach(note => {
+          noteInfo.push({
+            time: note.timeInSeconds + Tone.Transport.seconds,
+            note: note
+          })
+        });
 
-      let updateCurrentlyPlaying = function() {
-        let startTime = Date.now();
-        let desiredTime = 0;
-
-        function update() {
-          if (pattern.playing) {
-            pattern.currentTick++;
-            pattern.currentlyPlaying = queue.filter(note => note.tick == pattern.currentTick);
-            let diff = (Date.now() - startTime) - desiredTime;
-            console.log(diff);
-            desiredTime += tickTime;
-            setTimeout(() => update(), tickTime - diff);
+        const track = new Tone.Part(function(time, values) {
+          values.note.playNote();
+          if (queue.length != 0) {
+            queue.shift();
           }
-        };
-        update();
-      }();
+        }, noteInfo).start(0);
+        Tone.Transport.scheduleRepeat(function(time){
+          pattern.currentTick++;
+          pattern.currentlyPlaying = queue.filter(note => note.tick == pattern.currentTick);
+        }, tickTime / 1000);
+        Tone.Transport.start("+0", "0:0:0");
 
       setTimeout(() => {
           pattern.playing = false;
           pattern.currentTick = 1;
+          Tone.Transport.stop();
+          Tone.Transport.cancel();
       }, queue[queue.length - 1].tick * tickTime);
     }
-
-    // play() {
-    //   this.playing = true;
-    //   let tickTime = getTickSpeed();
-    //   let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
-    //   queue = queue.filter( note => note.tick >= this.currentTick);
-    //   let pattern = this;
-    //   let startTime = Date.now();
-
-    //   queue.forEach(note => {
-    //     setTimeout(() => {
-    //       note.play();
-    //       let diff = (Date.now() - startTime) - (note.tick * tickTime);
-    //       console.log(`inaccuracy: ${diff}`);
-    //     }, note.tick * tickTime);
-    //   });
-
-    //   setTimeout(() => { pattern.playing = false; pattern.currentTick = 1; }, queue[queue.length - 1].tick * tickTime);
-    // }
   
   }
-
-
-
-
-/*
-  class Pattern {
-    constructor(notes) {
-      this.notes = [...notes];
-      this.currentlyPlaying = [];
-      this.startingBeat = 0;
-      this.currentTick = 1;
-      this.name = "";
-      this.playing = false;
-      //cannot be looped
-    }
-  
-    get patternLength() {
-      let max = 0;
-      for (let i = 0; i < this.notes.length; i++) {
-        if (this.notes[i].tick > max)
-          max = this.notes[i].tick;
-      }
-  
-      if (max % 4 != 0) {
-        max += 4 - (max % 4);
-      }
-      return max;
-    }
-  
-    get sounds() {
-      let noteSounds = [];
-      for (let i = 0; i < this.notes.length; i++) {
-        let currentSound = this.notes[i].sound;
-        let contains = false;
-        for (let j = 0; j < noteSounds.length; j++) {
-          if (_.isEqual(noteSounds[j], currentSound)) {
-            contains = true;
-            break;
-          }
-        }
-  
-        if (!contains) {
-          noteSounds.push(currentSound);
-        }
-      }
-      return noteSounds;
-    }
-  
-    clone() {
-      return new Pattern(this.notes);
-    }
-  
-    playFromStart() {
-      this.currentTick = 1;
-      this.play();
-    }
-  
-    pause() {
-      this.playing = false;
-      this.currentlyPlaying = [];
-    }
-  
-    play() {
-      this.playing = true;
-      let tickTime = getTickSpeed();
-      let queue = [...this.notes].sort((a, b) => a.tick - b.tick);
-      queue = queue.filter( note => note.tick >= this.currentTick);
-      let patternLength = this.patternLength;
-      let pattern = this;
-      let queueLocation = 0;
-
-      let startTime = Date.now();
-      let desiredTime = 0;
-      playbackLoop();
-  
-      function playbackLoop() {
-        pattern.currentlyPlaying = [];
-        if (!pattern.playing) {
-          return;
-        } else if (pattern.currentTick > patternLength) {
-          pattern.playing = false;
-          pattern.currentTick = 1;
-          return;
-        } else if (queueLocation >= queue.length) {
-          pattern.currentTick++;
-          window.setTimeout( () => playbackLoop(), tickTime);
-          return;
-        }
-          
-        
-        while (queue[queueLocation].tick == pattern.currentTick) {
-          pattern.currentlyPlaying.push(queue[queueLocation]);
-          queue[queueLocation].play();
-          queueLocation++;
-          if (queueLocation >= queue.length) {
-            break;
-          }
-        }
-        
-        let diff = (Date.now() - startTime) - desiredTime;
-        console.log(diff);
-        pattern.currentTick++;
-        desiredTime += tickTime;
-        window.setTimeout( () => playbackLoop(), (tickTime - diff));
-        return;
-      }
-    }
-  
-  }
-  */
