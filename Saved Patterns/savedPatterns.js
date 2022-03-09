@@ -216,7 +216,7 @@ var makePatternFromJSONObject = function(jsonObject) {
 
 $(window).on('load', function() {
     $("#saved-patterns-window").hide();
-    fetch("../basicPatterns.json")
+    fetch("Saved Patterns/basicPatterns.json")
         .then(file => {return file.json()})
         .then(patterns => patterns.forEach( function(pattern) {
             let conversion = makePatternFromJSONObject(pattern);
@@ -225,6 +225,7 @@ $(window).on('load', function() {
         .then(() => savedPatternsProgram())
         .catch(error => {
             console.log('could not load default patterns');
+            console.error(error);
             savedPatternsProgram();
         });
 });
@@ -234,7 +235,5 @@ let savedPatternsProgram = function() {
     $(".pattern-edit-dropdown").hide();
     $("#saved-patterns-close-button").click(toggleVisibility);
     constructSavedPatterns();
-    
-
     $("#saved-patterns-selection-button").click(toggleVisibility);
 }
