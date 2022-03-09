@@ -1,0 +1,134 @@
+#playlist-holder {
+    position: relative;
+}
+
+
+#playlist {
+    width: 98vw;
+    height: 75vh;
+    margin-left: 1vw;
+    overflow: scroll;
+    background: linear-gradient(to bottom, black, #222222);
+    margin-top: 20px;
+    display: block;
+    position: relative;
+}
+
+#playlist-table {
+    background-color: white;
+    position: relative;
+    border-collapse:collapse;
+}
+
+#playlist-table tr {
+    background-color: #AAAAAA;
+}
+
+#playlist-table * {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+#playlist-table tr td {
+    position: relative;
+    background-color: #444444;
+    /* border-radius: 5px; */
+    overflow: visible !important;
+    margin: 0;
+    content-visibility: hidden;
+}
+
+#playlist-table tr td.dark {
+    background-color: #222222;
+}
+
+#playlist-table tr td:nth-of-type(16n)::after {
+    position: absolute;
+    content: "";
+    right: -1px;
+    top: 0px;
+    height: 100%;
+    border-radius: 25%;
+    border: 4px double black;
+}
+
+#playlist-table tr td:hover {
+    background-color: black;
+}
+
+#playlist-table tr td.selected {
+    background-color: green !important;
+    cursor: pointer;
+}
+
+#playlist-table tr td canvas {
+    z-index: 1;
+    cursor: grab;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2 !important;
+}
+
+#playlist-table tr td.selected {
+    background-color: transparent;
+    cursor: grab;
+}
+
+#timer-line {
+    position: absolute;
+    left: 0%;
+    top: 0px;
+    min-height: 100%;
+    width: 10px;
+    background-color: white;
+    z-index: 2;
+    border: 1px solid black;
+    cursor: grab;
+    transition: left 0.1s;
+}
+
+#playlist-holder .autoscroller {
+    z-index: 3;
+}
+
+#playlist-holder .autoscroller.horizontal {
+    height: 100%;
+    width: max(50px, 7%);
+    top: 0;
+}
+
+#playlist-holder .autoscroller.vertical {
+    width: 100%;
+    height: max(50px, 7%);
+}
+
+
+#playlist-autoscroller-left {
+    left: 0;
+}
+
+#playlist-autoscroller-right {
+    right: 0;
+}
+
+#playlist-autoscroller-top {
+    top: 0;
+}
+
+#playlist-autoscroller-bottom {
+    bottom: 0;
+}
+
+.canvas-info-display {
+    background-color: black;
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    z-index: 9;
+    border: 1px solid white;
+}
+
+.canvas-holder {
+    z-index: 1 !important;
+}

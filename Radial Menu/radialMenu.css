@@ -1,0 +1,66 @@
+#radial-menu {
+    width: 0;
+    height: 0;
+    transition: width 0.5s, height 0.5s, left 0.25s, top 0.25s;
+    position: fixed;
+    left: 0;
+    top: 0;
+    border-radius: 100%;
+    background-color: black;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.radial-menu-selection {
+    border-radius: 100%;
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    justify-self: center;
+    align-self: center;
+    border: 1px solid white;
+    background-color: black;
+    transition: background-color 0.15s;
+}
+
+.radial-menu-selection:hover {
+    background-color: lightgreen;
+}
+
+.radial-menu-selection .content {
+    width: 0;
+    height: 0;
+    left: 0;
+    top: 0;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    border: 1px solid white;
+    overflow: scroll;
+    position: fixed;
+    transition: width 0.25s, height 0.25s, top 0.25s, left 0.25s, border 0.25s, padding 0.25s, margin 0.25s;
+}
+
+.radial-menu-selection.selected {
+    background-color: green;
+    border: 1px solid green;
+}
+
+#quick-select {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+#quick-select button {
+    margin-bottom: 5px;
+}

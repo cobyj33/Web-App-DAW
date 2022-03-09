@@ -1,0 +1,150 @@
+const patternHTML = `
+            <div class="pattern-instance">
+                <div class="pattern-edit-area">
+                    <button class="pattern-edit-button"> ^ </button>
+                    <div class="pattern-edit-dropdown">
+                        <button type="button" class="change-pattern-name"> Change Name </button>
+                    </div>
+                </div>
+                <div class="pattern-visualizer">
+                    
+                </div>
+                <h2 class="pattern-title"> New Pattern #1 </h2>
+                <div class="pattern-info">
+                    <h3> Length: </h3>
+                    <h3> Notes: </h3>
+                </div>
+                <div class="pattern-interact">
+                    <button type="button" class="windowSelectionButton pattern-play-button"> Play </button>
+                    <button type="button" class="windowSelectionButton pattern-select-button"> Select </button>
+                </div>
+            </div>
+`
+
+function createSavedPattern(patternTitle, trackLength, numOfNotes) {
+    return `
+    <div class="pattern-instance">
+        <div class="pattern-edit-area">
+            <button class="pattern-edit-button"> ^ </button>
+            <div class="pattern-edit-dropdown">
+                <button type="button" class="change-pattern-name"> Change Name </button>
+            </div>
+        </div>
+        <div class="pattern-visualizer">
+            
+        </div>
+        <h2 class="pattern-title"> ${patternTitle} </h2>
+        <div class="pattern-info">
+            <h3> Length: ${trackLength} </h3>
+            <h3> Notes: ${numOfNotes} </h3>
+        </div>
+        <div class="pattern-interact">
+            <button type="button" class="windowSelectionButton pattern-play-button"> Play </button>
+            <button type="button" class="windowSelectionButton pattern-select-button"> Select </button>
+        </div>
+    </div>
+`
+}
+
+
+var savedPatterns = {
+    patterns: [],
+
+    addPattern: function(pattern) {
+        if (pattern.name == "") {
+            pattern.name = `New Pattern #${this.patterns.length + 1}`;
+        }
+        this.patterns.push(pattern);
+        program.addPattern();
+    },
+
+    removePattern: function(name) {
+
+    },
+}
+
+function savedPatternsProgram() {
+    $("#saved-patterns-window").hide();
+    $(".pattern-edit-dropdown").hide();
+
+    function constructSavedPatterns() {
+        const savedPatternsDisplay = document.getElementById("saved-patterns");
+        for (let i = 0; i < savedPatterns.patterns.length; i++) {
+            const patternInstance = makeDisplayFromPattern(savedPatterns.patterns[i]);
+            savedPatternsDisplay.append(patternInstance);
+        }
+    }
+
+    function makeDisplayFromPattern(pattern) {
+        const newPatternInstance = document.createElement("div");
+        newPatternInstance.classList.add("pattern-instance");
+        
+        const patternEditArea = makeEditDropDown();
+        const visualizer = makeVisualizerFromPattern(pattern);
+        
+        const title = document.createElement("h2");
+        title.classList.add("pattern-title");
+        title.innerText = pattern.name;
+
+        const info = makePatternInfo(pattern);
+
+        const interact = makePatternInteractionArea();
+
+        
+        newPatternInstance.append(patternEditArea);
+        newPatternInstance.append(visualizer);
+        newPatternInstance.append(title);
+        newPatternInstance.append(info);
+        newPatternInstance.append(interact);
+        return newPatternInstance;
+    }
+
+    function makeVisualizerFromPattern(pattern) {
+        const visualizer = document.createElement("div");
+        visualizer.classList.add("pattern-visualizer");
+
+        return visualizer;
+    }
+
+
+
+    function makeEditDropDown() {
+        const patternEditArea = createElementWithClasses("div", ["pattern-edit-area"]);
+        const patternEditButton = createElementWithClasses("button", ["pattern-edit-button"]);
+        const patternEditDropDown = createElementWithClasses("div", ["pattern-edit-dropdown"]);
+    }
+
+    function makePatternInteractionArea() {
+        const patternInteract = document.createElement("div");
+        const playButton = document.createElement()
+    }
+
+    function makePatternInfo() {
+
+    }
+
+    function addPattern() {
+
+    }
+
+    function removePattern(index) {
+
+    }
+
+    this.addPattern = addPattern;
+    this.removePattern = removePattern;
+
+    function toggleVisibility() {
+        $("#saved-patterns-window").toggle();
+    }
+
+    console.log("in saved patterns");
+    $("#saved-patterns-selection-button").click(toggleVisibility);
+    $("#saved-patterns-close-button").click(toggleVisibility);
+    $(".pattern-edit-button").click(function() {
+        console.log("clicked");
+        $(this).parent().find(".pattern-edit-dropdown").toggle();
+    });
+}
+
+$(window).on('load', savedPatternsProgram);

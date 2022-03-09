@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> JJ STUDIO </title>
+    <link rel="shortcut icon" href="#">
+    <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="Music Creation StyleSheet.css">
+    <link rel="stylesheet" type="text/css" href="/Channel Rack/channelRack.css">
+    <link rel="stylesheet" type="text/css" href="/Saved Patterns/savedPatterns.css">
+    <link rel="stylesheet" type="text/css" href="/Playlist/playlist.css">
+    <link rel="stylesheet" type="text/css" href="/Radial Menu/radialMenu.css">
+    <link rel="stylesheet" type="text/css" href="/Piano Rack/pianorack.css">
+    <script src="bundle.js"></script>
+</head>
+<body>
+
+    <div id="toolBar">
+        <ul id="menuBar">
+            <li style=" text-align: center; color: white; font-family: 'Staatliches', cursive; overflow: hidden;"> <h1> JJ STUDIO </h1> </li>
+            <li>  <button class="menuButton"> Save</button></li>
+            <li>  <button class="menuButton"> Load</button></li>
+            <li>  <button class="menuButton"> View </button></li>
+            <li>  <button class="menuButton"> Edit</button></li>
+            <li><button class="menuButton">  About </button></li>
+        </ul> 
+
+        <div id="playListInfoBar">
+            <div class="input-container">
+                <h3 class="input-info"> BPM: </h3>
+                <input type="number" id="bpm-display" min="10" max="300" class="user-input">
+            </div>
+
+            <div class="input-container">
+                <h3 class="input-info"> Time Signature: </h3>
+                <input type="text" id="time-signature-display" placeholder="4/4" disabled class="user-input">
+            </div>
+
+            <div class="input-container">
+                <h3 class="input-info"> Current Time: </h3>
+                <input type="number" id="current-time-display" min="0" class="user-input">
+            </div>
+        </div>
+
+        <ul id="playListActionBar">
+            <li> <button type="button" id="playlist-loop-button" class="status-indicator "> L </button> </li>
+            <li> <button type="button" id="playlist-play-button" class="status-indicator "> ▶ </button> </li>
+            <li> <button type="button" id="playlist-restart-button" class="status-indicator"> ↺ </button> </li>
+            <li> 
+                <button type="button" id="playlist-save-button" class="status-indicator"> Save </button>
+                <div id="save-ui" class="action-bar-drop-down">
+                    <textarea> </textarea>
+                    <h3> Copy Key </h3>
+                </div>
+            </li>
+            <li>
+                <button type="button" id="playlist-open-button" class="status-indicator"> Open </button>
+                <div id="open-ui" class="action-bar-drop-down">
+                    <h3> Enter JSON Key: </h3>
+                    <textarea> </textarea>
+                    <button id="playlist-load-button" class="windowSelectionButton"> Load </button>
+                </div>
+            </li>
+        </ul>
+
+        <div id="windowSelection">
+            <button class="windowSelectionButton" id="channel-rack-selection-button"> Channel Rack </button>
+            <button class="windowSelectionButton" id="piano-rack-selection-button"> Piano Rack </button>
+            <button class="windowSelectionButton" id="saved-patterns-selection-button"> Saved Patterns </button> 
+        </div>
+    </div>
+
+    <div id="playlist-holder">
+        <div id="playlist" tabindex="0">
+            
+            <div id="timer-line"> </div>
+
+            <table id="playlist-table"> 
+                
+            </table>
+        </div>
+
+        <div id="playlist-autoscroller-left" class="autoscroller horizontal"> <span> &lt </span> </div>
+        <div id="playlist-autoscroller-right" class="autoscroller horizontal"> <span> &gt </span> </div>
+        <div id="playlist-autoscroller-top" class="autoscroller vertical"> <span> ↑ </span> </div>
+        <div id="playlist-autoscroller-bottom" class="autoscroller vertical"> <span> ↓ </span> </div>
+    </div>
+
+
+    <div id="channelRack" class="dragPane window"> 
+
+        <div class="topBar dragSelector">
+          <h1 style="font-size: 10px; color: white; user-select: none; "> Channel Rack </h1>
+          <button type="button" id="channelRack-loopButton" class="status-indicator"> L </button>
+          <button type="button" id="channelRack_playButton" class="status-indicator"> ▶ </button>
+          <button type="button" id="channelRack_stopButton" class="status-indicator"> ■ </button>
+          <button type="button" id="channelRack_resetButton" class="status-indicator"> ↺ </button>
+          <button type="button" id="channelRack-saveButton" class="status-indicator"> Save </button>
+
+          <button type="button" class="closeButton"> X </button>
+        </div>
+        
+        <div class="main">
+          <!-- constructed in javascript -->
+        </div>
+
+        <div id="channel-rack-autoscroller-left" class="autoscroller"> <span> &lt </span> </div>
+        <div id="channel-rack-autoscroller-right" class="autoscroller"> <span> &gt </span> </div>
+        
+
+        <div class="bottomBar">
+          <button class="addSoundButton"> Add Sound </button>
+          <div class="input-container">
+              <h3 class="input-info" style="margin: 0;"> Pattern Name: </h3>
+              <input type="text" class="user-input" id="channel-rack-name-input" placeholder="">
+          </div>
+        </div>
+        
+    </div>
+
+    <div id="pianoRack" class="dragPane window"> 
+
+        <!-- <div class="closeBar dragSelector">
+          <h1 style="font-size: 10px; color: white; user-select: none; "> Piano Rack </h1>
+          <button type="button" class="closeButton"> X </button>
+        </div>
+
+        <div id="piano-rack-options-bar">
+
+        </div>
+          
+        <div id="piano-rack-holder">
+          <table id="piano-rack-edit-area">
+            
+          </table>
+        </div>
+  
+        <div class="bottomBar">
+          <button class="addSoundButton"> Add Sound Button </button>
+        </div> -->
+          
+    </div>
+
+    <div id="saved-patterns-window" class="window dragPane">
+        <div class="topBar dragSelector">
+            <h3 id="current-selected-track"> Currently Selected: N/A </h3>
+
+            <div id="saved-patterns-search-area">
+                <h2> Search: </h2>
+                <input type="text" id="saved-patterns-search-bar" class="user-input" style="max-width: 100%;">
+            </div>
+
+            <button class="closeButton" id="saved-patterns-close-button"> X </button>
+        </div>
+
+        <div id="saved-patterns">
+            <!-- dynamically updated with javascript -->
+        </div>
+
+    </div>
+
+    <div id="radial-menu">
+        <div class="radial-menu-selection">
+            <div class="content" id="quick-select">
+                
+            </div>
+        </div>
+        <div class="radial-menu-selection"> 
+            <div class="content">
+                W.I.P
+            </div>
+        </div>
+        <div class="radial-menu-selection"> 
+            <div class="content">
+                W.I.P
+            </div>
+        </div>
+    </div>
+
+    <!-- <canvas id="canvas"> </canvas> -->
+
+
+    <script src="Web Audio API Test.js"></script>
+    <script src="classes.js"></script>
+    <script src="Music%20Creation%20JavaScript.js"> </script>
+    <script src="/Playlist/PlaylistTrack.js"></script>
+    <script src="/Playlist/playlist.js"></script>
+    <script src="dragPane.js"> </script>
+    <script src="/Channel Rack/channelRack.js"></script>
+    <script src="/Saved Patterns/savedPatterns.js"></script>
+    <script src="/Piano Rack/keyboardPiano.js"></script>
+    <script src="/Piano Rack/pianorack.js"></script>
+    <script src="/Radial Menu/radialMenu.js"></script>
+</body>
+</html>
