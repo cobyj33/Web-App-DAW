@@ -46,11 +46,17 @@ class PlaylistTrack {
     render() {
         let current = this;
         this.canvas.width = this.width * $("#playlist-table tr td").outerWidth();
-        if ($(this.canvas).parent().length > 1) {
+
+        let column = $(this.canvas).parent()[0];
+        let row = $(column).parent()[0];
+        let endCell = $(row).find(`td:nth-of-type(${$(this.canvas).parent().index() + this.width + 1})`);
+        console.log(endCell);
+        console.log($(column).index() + this.width + 1);
+        if ($(this.canvas).parent().length > 0 && endCell.length > 0) {
             console.log('using the long equation');
-            this.canvas.width = $(`#pianoRack tr td:nth-of-type(${$(this.canvas).parent().index() + this.width + 1})`).position().left - $(this.canvas).parent().position().left + $('#pianoRack tr td').outerWidth();
+            this.canvas.width = endCell.position().left - $(column).position().left + $('#pianoRack tr td').outerWidth();
         }
-        // this.canvas.width = $(`#pianoRack tr td:nth-of-type(${$(this.canvas).parent().index() + this.width})`).position().left - $(this.canvas).parent().position().left + $('#pianoRack tr td').outerWidth();
+
         let canvasToTableRatio = this.canvas.height / $("#playlist-table tr td").height();
         if (canvasToTableRatio > 0.99 || canvasToTableRatio < 0.80) {
             this.canvas.height = $("#playlist-table tr td").height();

@@ -1,11 +1,18 @@
-const { Tone } = require("tone/build/esm/core/Tone");
-
 const numOfOctaves = 8;
 const numOfBeats = 20;
 const octaveNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 
 const selectedColor = "rgb(0, 255, 0)";
+
+function schedulePianoRackPlayLine() {
+    Tone.Transport.scheduleRepeat(function(time) {
+            $(`#piano-rack-edit-area tr td[data-tick='${pianoRack.currentTick - 1}']`).removeClass('play-line')
+            $(`#piano-rack-edit-area tr td[data-tick='${pianoRack.currentTick}']`).addClass('play-line')
+            pianoRack.currentTick++;
+            console.log('tick: ', pianoRack.currentTick);
+    }, getTickSpeed() / 1000);
+}
 
 class PianoRackSelection {
     constructor(note) {
@@ -140,19 +147,10 @@ pianoRack = {
             values.note.playNote();
         }, noteInfo).start(0);
 
-        Tone.Transport.scheduleRepeat(function(time) {
-            $(`#piano-rack-edit-area tr td[data-tick='${pianoRack.currentTick - 1}']`).removeClass('play-line')
-            $(`#piano-rack-edit-area tr td[data-tick='${pianoRack.currentTick}']`).addClass('play-line')
-            pianoRack.currentTick++;
-            console.log('tick: ', pianoRack.currentTick);
-        }, getTickSpeed() / 1000);
+        schedulePianoRackPlayLine();
         Tone.Transport.start();
         console.log(queue[queue.length - 1].endInSeconds);
         Tone.Transport.pause(Tone.now() + queue[queue.length - 1].endInSeconds);
-    },
-
-    record: function() {
-
     },
 
     stop: function() {
@@ -205,13 +203,25 @@ pianoRack = {
 
     record: function() {
         if (this.recording) {
+            console.log('ending recording');
             this.recording = false;
+            this.currentTick = 1;
+            $("#piano-rack-record-button").removeClass('on');
+            this.stop();
             return;
         }
-        this.recording = true;
-        Tone.Transport.scheduleRepeat(function(time) {
+        console.log('starting recording');
 
-        }, getTickSpeed() / 1000);
+        this.recording = true;
+        $("#piano-rack-record-button").addClass('on');
+        Tone.Transport.cancel();
+        let lastTime = Tone.now();
+        Tone.Transport.scheduleRepeat(function(time) {
+            pianoRack.currentTick += secondsToTicks(time - lastTime);
+            lastTime = Tone.now();
+        }, getTickSpeed() / 1000 / 10); //can record in tenths of a tick
+        schedulePianoRackPlayLine();
+        Tone.Transport.start();
         // implemented in keyboardPiano.js
     }
 }
@@ -270,11 +280,9 @@ function runProgram() {
         $("#piano-rack-stop-button").on('click', () => pianoRack.stop() );
         $("#piano-rack-play-button").on('click', () => pianoRack.play() );
         $("#piano-rack-save-button").on('click', () => pianoRack.save() );
-        $("#piano-rack-record-button").on('click', () => {
-            pianoRack.record();
-        });
+        $("#piano-rack-record-button").on('mousedown', (event) => { console.log('click', event.target); pianoRack.record(); } );
 
-        $("#pianoRack").on('mousedown', function(event) {
+        $("#pianoRack").on('keydown', function(event) {
             if (event.key = 'r')
                 pianoRack.record();
         })

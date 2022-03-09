@@ -37,6 +37,10 @@ class Sound {
       return ticksToSeconds(this.length);
     }
 
+    set lengthInSeconds(seconds) {
+      this.length = secondsToTicks(seconds);
+    }
+
     playNote() {
       if (this.sample.loaded) {
         this.sample.triggerAttackRelease(this.freq, this.lengthInSeconds);

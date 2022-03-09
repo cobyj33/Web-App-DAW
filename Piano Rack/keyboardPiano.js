@@ -39,13 +39,6 @@ $(window).on('load', function() {
         }
         
         if (keyboardKeys.isKey(key)) {
-            
-            if (pianoRack.recording()) {
-                let note = new Note({
-                    sound: pianoRack.sound,
-                    freq: keyboardKeys[key],
-                });
-            }
 
 
             let released = false;
@@ -60,17 +53,33 @@ $(window).on('load', function() {
             const sampler = new Tone.Sampler({
                 urls,
                 onload: function() {
+
+                    if (pianoRack.recording) {
+                        let note = new Note({
+                            sound: pianoRack.sound,
+                            freq: keyboardKeys[key],
+                        });
+                    }
+
                     console.log('sound loaded');
                     if (released) {
                         sampler.triggerAttackRelease(keyboardKeys[key] + keyboardOctave, 0.1);
+                        if (pianoRack.recording)
+                            pianoRack.select(note)
                     } else {
                         window.removeEventListener('keyup', checkQuickRelease);
                         sampler.triggerAttack(keyboardKeys[key] + keyboardOctave);
+                        let start = Tone.now();
 
                         function checkRelease(event) {
                             if (event.key == key) {
                                 console.log('released');
                                 sampler.triggerRelease();
+                                let duration = Tone.now() - start;
+                                if (pianoRack.recording) {
+                                    note.lengthInSeconds = duration;
+                                    pianoRack.select(note);
+                                }
                                 window.removeEventListener('keyup', checkRelease);
                             }
                         }

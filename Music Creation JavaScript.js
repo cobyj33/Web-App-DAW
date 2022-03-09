@@ -37,6 +37,10 @@ function ticksToSeconds(tick) {
   return tick * getTickSpeed() / 1000;
 }
 
+function secondsToTicks(seconds) {
+  return seconds * 1000 / getTickSpeed();
+}
+
 window.getSample = function(url, defaultNote) {
   let note = 'C4';
   if (defaultNote) {

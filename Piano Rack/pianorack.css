@@ -133,10 +133,6 @@
     cursor: e-resize;
 }
 
-#piano-rack-record-button {
-    color: red;
-}
-
 #piano-rack-record-button.on {
     color: darkred;
 }
