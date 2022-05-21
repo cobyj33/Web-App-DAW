@@ -195,6 +195,11 @@ function program() {
         $("#channelRack .main table tr td").css("min-width", columnSize + "px");
         $("#channelRack .main table tr td:nth-of-type(4n + 1)").css("border-right", "6px solid #222222");
         channelRackEvents();
+      },
+
+      clear: function() {
+        this.notes = [];
+        $("#channelRack .main table tr td").css("background-color", '');
       }
     }
 
@@ -463,6 +468,10 @@ function program() {
 
       $('#channelRack_playButton').click(function() {
         channelRackPlayAction();
+      });
+
+      $('#channelRack_clearButton').click(function() {
+        channelRack.clear();
       });
 
       $('#channelRack_stopButton').click(function() {
